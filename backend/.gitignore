@@ -1,0 +1,21 @@
+## .NET
+bin/
+obj/
+*.user
+[Rr]elease/
+[Dd]ebug/
+artifacts/
+
+## Rider / VS
+.idea/
+.vs/
+*.suo
+
+## Env / secrets
+appsettings.*.local.json
+*.env
+.env
+
+## Uploads locais (mídia em dev)
+uploads/
+wwwroot/uploads/
