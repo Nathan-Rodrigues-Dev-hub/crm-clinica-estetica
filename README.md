@@ -17,26 +17,32 @@ A cliente demonstra interesse → a clínica envia um **link de anamnese sem log
 | `02-Handoff-Diagrama-UML.md` | Diagramas UML (casos de uso, classes, sequência, estados) em PlantUML/Mermaid. |
 | `CRM Clinica de Estetica - Apresentacao para Cliente.pptx/.pdf` | Apresentação do projeto para o cliente (v1.1, fluxo revisado). |
 | `backend/` | **API .NET 8** (Clean Architecture) — Fase 1 implementada e testada. Ver `backend/README-backend.md`. |
+| `frontend/` | **App React + Vite + TypeScript** — Fase 1 implementada. Ver `frontend/README.md`. |
+| `.github/workflows/ci.yml` | CI (GitHub Actions): build + testes do backend (com Postgres) e build do frontend. |
 
 ## Status
 
-- ✅ **Backend (Fase 1 / MVP)** — Auth JWT por papel, Pacientes, Catálogo, Anamnese (link interno + intake público sem login), Triagem (agendar/recusar), Agenda (bloqueio de colisão), Mídia, LGPD (anonimização). Compilando, com migrations e testado de ponta a ponta contra PostgreSQL.
-- ⏳ **Frontend (React)** — a iniciar (ver *issues*).
-- ⏳ **Fase 2/3** — engajamento, comercial e marketing.
+- ✅ **Backend (Fase 1 / MVP)** — Auth JWT por papel, Pacientes, Catálogo, Anamnese (link interno + intake público sem login), Triagem (agendar/recusar), Agenda (bloqueio de colisão), Mídia, LGPD (anonimização). Validação de CPF com dígito verificador (FluentValidation), middleware global de erros (ProblemDetails) e **testes automatizados** (xUnit + WebApplicationFactory contra Postgres).
+- ✅ **Frontend (React)** — login/sessão JWT com guarda por papel, anamnese pública, pacientes, catálogo, triagem, agenda e galeria de mídia. Responsivo.
+- ⏳ **Fase 2/3** — engajamento, comercial e marketing. Itens com custo (S3, deploy, WhatsApp/e-mail) no backlog.
 
 ## Stack
 
-- **Backend:** ASP.NET Core (.NET 8), Clean Architecture, EF Core + PostgreSQL, JWT, BCrypt.
-- **Frontend:** React (responsivo) — planejado.
+- **Backend:** ASP.NET Core (.NET 8), Clean Architecture, EF Core + PostgreSQL, JWT, BCrypt, FluentValidation.
+- **Frontend:** React 18 + Vite + TypeScript, react-router, axios (responsivo).
 - **Storage de mídia:** local em dev; **AWS S3 (sa-east-1)** em produção (interface `IFileStorage` já pronta).
 
-## Rodando o backend (resumo)
+## Rodando (resumo)
 
 ```bash
+# 1) Backend
 cd backend
-docker compose up -d              # PostgreSQL
-cd src/Crm.Api && dotnet run       # aplica migrations + seed automaticamente
-# Swagger: http://localhost:5080/swagger
+docker compose up -d               # PostgreSQL
+cd src/Crm.Api && dotnet run        # aplica migrations + seed automaticamente (http://localhost:5240)
+
+# 2) Frontend (em outro terminal)
+cd frontend
+npm install && npm run dev          # http://localhost:5173
 ```
 
-Usuários de teste (seed): `admin@clinica.local` · `profissional@clinica.local` · `recepcao@clinica.local` — senha `Admin@123`. Detalhes completos em [`backend/README-backend.md`](backend/README-backend.md).
+Usuários de teste (seed): `admin@clinica.local` · `profissional@clinica.local` · `recepcao@clinica.local` — senha `Admin@123`. Detalhes em [`backend/README-backend.md`](backend/README-backend.md) e [`frontend/README.md`](frontend/README.md).
