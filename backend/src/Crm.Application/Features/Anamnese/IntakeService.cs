@@ -61,8 +61,8 @@ public class IntakeService
         }
 
         var cpf = Cpf.Normalizar(req.Paciente.Cpf);
-        if (cpf is not null && !Cpf.TamanhoValido(cpf))
-            return Result.Falha<IntakeResultado>("CPF deve ter 11 dígitos.");
+        if (cpf is not null && !Cpf.Valido(cpf))
+            return Result.Falha<IntakeResultado>("CPF inválido (verifique os dígitos).");
 
         // Resolve o paciente: link já vinculado > CPF existente > novo (auto-cadastro).
         Paciente? paciente = null;

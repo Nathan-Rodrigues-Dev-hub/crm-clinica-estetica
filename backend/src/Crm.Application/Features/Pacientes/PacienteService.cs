@@ -25,8 +25,8 @@ public class PacienteService
             return Result.Falha<PacienteDto>("Nome é obrigatório.");
 
         var cpf = Cpf.Normalizar(req.Cpf);
-        if (cpf is not null && !Cpf.TamanhoValido(cpf))
-            return Result.Falha<PacienteDto>("CPF deve ter 11 dígitos.");
+        if (cpf is not null && !Cpf.Valido(cpf))
+            return Result.Falha<PacienteDto>("CPF inválido (verifique os dígitos).");
 
         if (cpf is not null && await _db.Pacientes.AnyAsync(p => p.ClinicaId == _user.ClinicaId && p.Cpf == cpf, ct))
             return Result.Falha<PacienteDto>("Já existe um paciente com este CPF.", ErrorType.Conflict);
@@ -56,8 +56,8 @@ public class PacienteService
         if (string.IsNullOrWhiteSpace(req.Nome)) return Result.Falha<PacienteDto>("Nome é obrigatório.");
 
         var cpf = Cpf.Normalizar(req.Cpf);
-        if (cpf is not null && !Cpf.TamanhoValido(cpf))
-            return Result.Falha<PacienteDto>("CPF deve ter 11 dígitos.");
+        if (cpf is not null && !Cpf.Valido(cpf))
+            return Result.Falha<PacienteDto>("CPF inválido (verifique os dígitos).");
         if (cpf is not null && await _db.Pacientes.AnyAsync(p => p.ClinicaId == _user.ClinicaId && p.Cpf == cpf && p.Id != id, ct))
             return Result.Falha<PacienteDto>("Já existe outro paciente com este CPF.", ErrorType.Conflict);
 

@@ -16,12 +16,18 @@ JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers()
+builder.Services.AddControllers(o =>
+    {
+        // Valida os requests com FluentValidation antes de chegar na action (400 ProblemDetails).
+        o.Filters.Add<ValidationFilter>();
+    })
     .AddJsonOptions(o =>
     {
         // Enums como string ("Admin", "Recebida"...) nas respostas/requests.
         o.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
+
+builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
@@ -86,6 +92,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// Catch-all de exceções não tratadas → ProblemDetails + logging estruturado (deve ser o primeiro middleware).
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

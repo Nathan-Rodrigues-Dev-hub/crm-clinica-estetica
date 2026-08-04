@@ -58,5 +58,20 @@ public static class DbSeeder
 
             await db.SaveChangesAsync();
         }
+
+        // Seed opcional de procedimentos de exemplo (Seed:Procedimentos = true, padrão em Development).
+        var seedProcedimentos = config.GetValue<bool?>("Seed:Procedimentos") ?? true;
+        if (seedProcedimentos && !await db.Procedimentos.AnyAsync())
+        {
+            db.Procedimentos.AddRange(
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Limpeza de pele profunda", Categoria = "Facial", Descricao = "Higienização, extração e hidratação.", DuracaoMinutos = 60, ValorReferencia = 180m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Peeling químico", Categoria = "Facial", Descricao = "Renovação celular com ácidos.", DuracaoMinutos = 45, ValorReferencia = 250m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Massagem modeladora", Categoria = "Corporal", Descricao = "Redução de medidas e drenagem.", DuracaoMinutos = 50, ValorReferencia = 150m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Drenagem linfática", Categoria = "Corporal", Descricao = "Estímulo do sistema linfático.", DuracaoMinutos = 60, ValorReferencia = 160m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Aplicação de toxina botulínica", Categoria = "Injetáveis", Descricao = "Atenuação de linhas de expressão.", DuracaoMinutos = 30, ValorReferencia = 900m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Microagulhamento", Categoria = "Facial", Descricao = "Indução percutânea de colágeno.", DuracaoMinutos = 60, ValorReferencia = 350m, Ativo = true });
+
+            await db.SaveChangesAsync();
+        }
     }
 }
