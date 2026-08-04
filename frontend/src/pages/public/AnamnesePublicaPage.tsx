@@ -205,8 +205,8 @@ export function AnamnesePublicaPage() {
               <h2 style={{ marginBottom: 6 }}>Anamnese</h2>
               <p className="muted" style={{ marginBottom: 16 }}>Peso e altura calculam seu IMC automaticamente. A pressão arterial é aferida na clínica.</p>
               <div className="form-row">
-                <Field label="Peso (kg)"><input type="number" min={0} step="0.1" value={peso} onChange={(e) => setPeso(e.target.value)} /></Field>
-                <Field label="Altura (m)"><input type="number" min={0} step="0.01" value={altura} onChange={(e) => setAltura(e.target.value)} placeholder="1.65" /></Field>
+                <Field label="Peso (kg)" hint="Entre 1 e 500 kg."><input type="number" min={1} max={500} step="0.1" value={peso} onChange={(e) => setPeso(e.target.value)} placeholder="68" /></Field>
+                <Field label="Altura (m)" hint="Em metros — ex.: 1,70 (não em cm)."><input type="number" min={0.5} max={2.5} step="0.01" value={altura} onChange={(e) => setAltura(e.target.value)} placeholder="1.70" /></Field>
               </div>
 
               <div className="section-title">Questionário de saúde</div>

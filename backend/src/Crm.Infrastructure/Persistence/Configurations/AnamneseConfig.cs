@@ -12,7 +12,8 @@ public class AnamneseConfig : IEntityTypeConfiguration<Anamnese>
         b.HasKey(x => x.Id);
         b.Property(x => x.Peso).HasPrecision(5, 2);
         b.Property(x => x.Altura).HasPrecision(4, 2);
-        b.Property(x => x.Imc).HasPrecision(5, 2);
+        // IMC calculado: precisão folgada para nunca estourar dentro das faixas válidas de peso/altura.
+        b.Property(x => x.Imc).HasPrecision(6, 2);
         b.Property(x => x.PressaoArterial).HasMaxLength(20);
         b.Property(x => x.MotivoEstetico).HasMaxLength(2000);
 

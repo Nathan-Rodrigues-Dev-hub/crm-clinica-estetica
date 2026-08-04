@@ -15,9 +15,9 @@ public class IntakeRequestValidator : AbstractValidator<IntakeRequest>
         RuleFor(x => x.Anamnese.AceiteDeclaracao).Equal(true)
             .WithMessage("É necessário aceitar a declaração de veracidade.")
             .When(x => x.Anamnese is not null);
-        RuleFor(x => x.Anamnese.Peso).GreaterThan(0).When(x => x.Anamnese?.Peso is not null)
-            .WithMessage("Peso deve ser maior que zero.");
-        RuleFor(x => x.Anamnese.Altura).GreaterThan(0).When(x => x.Anamnese?.Altura is not null)
-            .WithMessage("Altura deve ser maior que zero.");
+        RuleFor(x => x.Anamnese.Peso).InclusiveBetween(1m, 500m).When(x => x.Anamnese?.Peso is not null)
+            .WithMessage("Peso deve estar entre 1 e 500 kg.");
+        RuleFor(x => x.Anamnese.Altura).InclusiveBetween(0.5m, 2.5m).When(x => x.Anamnese?.Altura is not null)
+            .WithMessage("Informe a altura em metros (ex.: 1,70) — entre 0,5 e 2,5 m.");
     }
 }
