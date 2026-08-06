@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { publicAnamneseApi } from '../../api/services'
 import { mensagemErro } from '../../api/client'
@@ -15,6 +15,63 @@ interface DadosPaciente {
   dataNascimento: string
   sexo: string
   endereco: string
+}
+
+// ------------------------------------------------------------- rascunho local
+// Épico C (#18): não perder o que a paciente digita se a aba fechar/cair a rede.
+// Persistido no localStorage, chaveado pelo token do link.
+type EtapaRascunho = 'procedimento' | 'formulario'
+
+interface Rascunho {
+  procId: string
+  outro: boolean
+  outroTexto: string
+  dados: DadosPaciente
+  peso: string
+  altura: string
+  motivo: string
+  respostas: RespostasAnamnese
+  aceite: boolean
+  etapa: EtapaRascunho
+  ts: number
+}
+
+const chaveRascunho = (token: string) => `crm.rascunho.${token}`
+
+function lerRascunho(token: string): Rascunho | null {
+  try {
+    const raw = localStorage.getItem(chaveRascunho(token))
+    return raw ? (JSON.parse(raw) as Rascunho) : null
+  } catch {
+    return null // localStorage indisponível ou JSON corrompido — segue sem rascunho
+  }
+}
+
+function salvarRascunho(token: string, r: Rascunho): boolean {
+  try {
+    localStorage.setItem(chaveRascunho(token), JSON.stringify(r))
+    return true
+  } catch {
+    return false // modo privado, cota cheia, etc. — degrada sem quebrar o fluxo
+  }
+}
+
+function limparRascunho(token: string) {
+  try {
+    localStorage.removeItem(chaveRascunho(token))
+  } catch {
+    /* ignore */
+  }
+}
+
+// Só recupera/mostra banner se o rascunho tiver algo de fato preenchido.
+function rascunhoTemConteudo(r: Rascunho): boolean {
+  const d = r.dados
+  return !!(
+    d.nome || d.cpf || d.telefone || d.dataNascimento || d.sexo || d.endereco ||
+    r.procId || r.outroTexto || r.peso || r.altura || r.motivo || r.aceite ||
+    (r.respostas && Object.keys(r.respostas).length > 0)
+  )
 }
 
 // Perguntas Sim/Não do modelo fixo (com detalhe onde indicado).
@@ -71,15 +128,54 @@ export function AnamnesePublicaPage() {
   const [enviando, setEnviando] = useState(false)
   const [resultado, setResultado] = useState<IntakeResultado | null>(null)
 
+  // Autosave (Épico C): banner de recuperação, indicador "salvo" e trava até restaurar.
+  const [rascunhoRecuperado, setRascunhoRecuperado] = useState(false)
+  const [salvoEm, setSalvoEm] = useState<number | null>(null)
+  const prontoRef = useRef(false)
+
   useEffect(() => {
     publicAnamneseApi.abrir(token)
       .then((r) => {
         setAbertura(r.data)
-        setEtapa(r.data.valido ? 'procedimento' : 'invalido')
-        if (!r.data.valido) setErro(r.data.motivo ?? 'Link inválido.')
+        if (!r.data.valido) {
+          setEtapa('invalido')
+          setErro(r.data.motivo ?? 'Link inválido.')
+          return
+        }
+        const rasc = lerRascunho(token)
+        if (rasc && rascunhoTemConteudo(rasc)) {
+          setProcId(rasc.procId)
+          setOutro(rasc.outro)
+          setOutroTexto(rasc.outroTexto)
+          setDados(rasc.dados)
+          setPeso(rasc.peso)
+          setAltura(rasc.altura)
+          setMotivo(rasc.motivo)
+          setRespostas(rasc.respostas ?? {})
+          setAceite(rasc.aceite)
+          setEtapa(rasc.etapa === 'formulario' ? 'formulario' : 'procedimento')
+          setRascunhoRecuperado(true)
+        } else {
+          setEtapa('procedimento')
+        }
+        prontoRef.current = true // libera o autosave só depois de tentar restaurar
       })
       .catch((e) => { setEtapa('invalido'); setErro(mensagemErro(e, 'Link inválido ou expirado.')) })
   }, [token])
+
+  // Persiste o preenchimento com debounce (~600ms) enquanto a paciente digita.
+  useEffect(() => {
+    if (!prontoRef.current) return
+    if (etapa !== 'procedimento' && etapa !== 'formulario') return
+    const id = setTimeout(() => {
+      const ok = salvarRascunho(token, {
+        procId, outro, outroTexto, dados, peso, altura, motivo, respostas, aceite,
+        etapa: etapa as EtapaRascunho, ts: Date.now(),
+      })
+      if (ok) setSalvoEm(Date.now())
+    }, 600)
+    return () => clearTimeout(id)
+  }, [token, etapa, procId, outro, outroTexto, dados, peso, altura, motivo, respostas, aceite])
 
   const setResp = (chave: keyof RespostasAnamnese, valor: unknown) => setRespostas((r) => ({ ...r, [chave]: valor }))
 
@@ -118,6 +214,7 @@ export function AnamnesePublicaPage() {
         },
       }
       const res = await publicAnamneseApi.submeter(token, payload)
+      limparRascunho(token) // enviado com sucesso — rascunho não é mais necessário
       setResultado(res.data)
       setEtapa('concluido')
       window.scrollTo(0, 0)
@@ -149,7 +246,20 @@ export function AnamnesePublicaPage() {
           </div>
         )}
 
+        {rascunhoRecuperado && (etapa === 'procedimento' || etapa === 'formulario') && (
+          <div className="alert alert-info" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <span>Recuperamos o preenchimento que você começou neste aparelho.</span>
+            <button type="button" className="link-btn" onClick={() => setRascunhoRecuperado(false)}>ok</button>
+          </div>
+        )}
+
         {erro && <div className="alert alert-err">{erro}</div>}
+
+        {salvoEm != null && (etapa === 'procedimento' || etapa === 'formulario') && (
+          <p className="muted" style={{ textAlign: 'center', fontSize: 12, marginTop: -6, marginBottom: 14 }}>
+            ✓ Rascunho salvo automaticamente neste aparelho
+          </p>
+        )}
 
         {etapa === 'invalido' && (
           <div className="card intake-ok">
