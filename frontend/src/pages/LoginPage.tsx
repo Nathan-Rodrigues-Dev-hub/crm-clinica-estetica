@@ -36,7 +36,7 @@ export function LoginPage() {
   return (
     <div className="login-wrap">
       <div className="login-hero">
-        <span className="hero-mark">✿</span>
+        <span className="hero-mark">GA</span>
         <h2>Gestão completa da sua clínica de estética</h2>
         <p>Pacientes, anamnese online, triagem, agenda e prontuário — tudo em um só lugar, com segurança e LGPD.</p>
         <ul>

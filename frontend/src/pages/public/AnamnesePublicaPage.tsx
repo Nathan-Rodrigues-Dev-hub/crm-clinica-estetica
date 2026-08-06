@@ -130,8 +130,8 @@ export function AnamnesePublicaPage() {
 
   const Marca = (
     <div className="intake-brand">
-      <span className="brand-mark">✿</span>
-      <div><strong style={{ display: 'block', color: 'var(--plum)' }}>Clínica de Estética</strong><small className="muted">Ficha de anamnese</small></div>
+      <span className="brand-mark">GA</span>
+      <div><strong style={{ display: 'block', fontFamily: 'var(--font-title)', color: 'var(--plum)' }}>GA Clinic &amp; Academy</strong><small className="muted">Ficha de anamnese</small></div>
     </div>
   )
 

@@ -41,10 +41,10 @@ export function Layout() {
     <div className="app-shell">
       <aside className={`sidebar ${menuAberto ? 'sidebar-open' : ''}`}>
         <div className="brand">
-          <span className="brand-mark">✿</span>
+          <span className="brand-mark">GA</span>
           <div>
-            <strong>Clínica Estética</strong>
-            <small>CRM · Fase 1</small>
+            <strong>GA Clinic &amp; Academy</strong>
+            <small>CRM · Estética</small>
           </div>
         </div>
 
