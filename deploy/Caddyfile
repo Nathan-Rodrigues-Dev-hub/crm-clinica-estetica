@@ -1,0 +1,23 @@
+# Caddy: HTTPS automático (Let's Encrypt), serve o SPA e faz proxy de /api → API .NET.
+# DOMAIN e TLS_EMAIL vêm do ambiente (definidos no docker-compose a partir do .env).
+
+{
+	# E-mail para o Let's Encrypt (avisos de expiração de certificado).
+	email {$TLS_EMAIL}
+}
+
+{$DOMAIN} {
+	encode gzip zstd
+
+	# Chamadas de API vão para o container da API (mesma origem, sem CORS).
+	handle /api/* {
+		reverse_proxy api:8080
+	}
+
+	# Frontend estático com fallback de SPA (rotas do React Router).
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

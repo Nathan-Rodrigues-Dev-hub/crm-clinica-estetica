@@ -1,0 +1,18 @@
+# Build do frontend (Vite) + Caddy servindo o estático e fazendo reverse proxy de /api.
+# Contexto de build: a pasta frontend/. O Caddyfile é montado via volume no compose.
+
+# ---- build do frontend ----
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# VITE_API_URL vazio => o app chama a MESMA origem (/api/...), sem CORS de origem cruzada.
+ENV VITE_API_URL=""
+COPY . .
+RUN npm run build
+
+# ---- servidor (Caddy) ----
+FROM caddy:2-alpine
+# O Caddyfile é montado em /etc/caddy/Caddyfile pelo docker-compose.
+COPY --from=build /app/dist /srv

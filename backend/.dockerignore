@@ -1,0 +1,11 @@
+# Mantém o contexto de build enxuto.
+**/bin/
+**/obj/
+**/artifacts/
+tests/
+*.user
+*.sln.DotSettings*
+uploads/
+docker-compose.yml
+.dockerignore
+Dockerfile

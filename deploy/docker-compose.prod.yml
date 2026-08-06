@@ -1,0 +1,70 @@
+# Stack de produção do piloto (VPS único, região Brasil):
+#   db (Postgres 16) + api (.NET 8) + web (Caddy: SPA + proxy /api + HTTPS).
+# Só o container web expõe portas ao host (80/443). A API fica na rede interna.
+#
+# Uso:  cd deploy && cp .env.example .env && (editar .env) && docker compose -f docker-compose.prod.yml up -d --build
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - crm_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      Jwt__Key: "${JWT_KEY}"
+      Jwt__Issuer: "Crm.Api"
+      Jwt__Audience: "Crm.Client"
+      Jwt__ExpiraMinutos: "480"
+      Storage__LocalPath: "/data/uploads"
+      Cors__Origens__0: "https://${DOMAIN}"
+      Seed__AdminEmail: "${ADMIN_EMAIL}"
+      Seed__AdminSenha: "${ADMIN_SENHA}"
+      Seed__AdminNome: "${ADMIN_NOME}"
+      Seed__ClinicaNome: "${CLINICA_NOME}"
+      Seed__Procedimentos: "${SEED_PROCEDIMENTOS:-false}"
+    volumes:
+      - crm_uploads:/data/uploads
+
+  web:
+    build:
+      context: ../frontend
+      dockerfile: ../deploy/Dockerfile.web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: "${DOMAIN}"
+      TLS_EMAIL: "${TLS_EMAIL}"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  crm_pgdata:   # banco (dados relacionais)
+  crm_uploads:  # fotos/arquivos — nunca no Postgres, nunca no PC do cliente
+  caddy_data:   # certificados TLS (persistem entre recriações)
+  caddy_config:
