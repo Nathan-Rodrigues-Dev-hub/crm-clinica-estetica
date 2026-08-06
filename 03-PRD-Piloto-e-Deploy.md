@@ -96,41 +96,47 @@ Alvos (viewport lógico): **iPhone 14 / 14 Pro (390×844 / 393×852)** e **14 Pl
 
 **Aceite:** percorrer os fluxos principais em um iPhone 14 e um 14 Pro Max (ou emulação equivalente no Safari) sem overflow horizontal, sem zoom indesejado ao focar input, sem conteúdo sob o notch/home indicator.
 
-### Épico E — Identidade visual (Dra. Mariangel Camacho)
-Aplicar a identidade da marca ao frontend, substituindo o tema atual (rosa/plum) pelo **vinho + branco**. Fonte da verdade: manual da marca em `Assinaturas [dra mariangel].pdf` (extraído nesta sessão).
+### Épico E — Identidade visual (GA Clinic & Academy)
+Aplicar a identidade da marca **GA Clinic & Academy** ao frontend, substituindo o tema atual (rosa/mauve) por **dourado sobre creme**. Manter **toda a estrutura, layout e componentes** — trocar apenas **cores e fontes**, via variáveis de tema (centralizado, nada hardcoded por componente).
 
-**Paleta (do manual — "sofisticação, confiança, acolhimento e autoridade"):**
+> **Nota de escopo:** esta identidade **substitui** a direção anterior (vinho / "Dra. Mariangel"). Confirmar com o dono do projeto se "GA Clinic & Academy" é o nome/marca final antes de implementar.
+
+**Paleta (dourado sobre creme):**
 
 | Papel | Hex | Uso |
 |-------|-----|-----|
-| **Vinho (primária)** | `#58091F` | ações primárias, marca, nav ativo, foco, destaques |
-| **Branco** | `#FFFFFF` | fundo base, superfícies |
-| Vinho escuro (derivado) | `#40060F` | hover / estados pressionados |
-| Vinho tint (derivado) | `#FAF3F5` | fundos suaves, seleção, linhas alternadas |
-| Texto (derivado) | `#241E20` | texto principal |
-| Muted (derivado) | `#6E646A` | texto secundário |
-| Borda (derivado) | `#ECE3E6` | divisórias, bordas de input/card |
+| **Background geral** | `#F5EAD8` | fundo da aplicação (creme/bege quente) |
+| **Accent (gradiente)** | `#6F4513` → `#F1DFB1` | sidebar ativa, botões primários, ícones de destaque (bronze escuro → champanhe) |
+| **Primária sólida** | `#B99D63` | links, textos de destaque, badges (dourado médio) |
+| Bronze escuro | `#6F4513` | ícone dentro de badges, texto sobre dourado claro, hover |
+| Dourado claro / champanhe | `#F1DFB1` | fundos de badges/ícones, seleção, superfícies suaves |
+| Texto principal | `#2B2620` | corpo (marrom escuro quente, não preto puro) |
+| Texto secundário | `#8A7F6E` | legendas, `muted` |
+| Cards / superfícies | `#FFFDF9` | cards (branco levemente quente) |
+| Bordas | `#E8DCC4` | divisórias, bordas de input/card |
+| Estados/tags neutras (ex.: "Cancelado") | fundo `#F1DFB1` · texto `#6F4513` | no lugar de cinza puro |
 
-> Derivados são ajustáveis; o vinho `#58091F` e o branco são os fixos do manual.
+> Estados funcionais (sucesso/erro/aviso) podem ser mantidos, apenas harmonizando o tom.
 
-**Tipografia (do manual):**
+**Tipografia:**
 
-| Fonte | Papel no manual | Uso na UI | Web? |
-|-------|-----------------|-----------|------|
-| **Playfair Display** (serif) | conteúdos / títulos e destaques | **Títulos (h1–h4), destaques** | Google Fonts ✓ |
-| **Montserrat** (sans) | subtítulos, apoio, textos curtos | **UI, corpo, labels, botões** | Google Fonts ✓ |
-| Glacial Indifference | fonte da marca (logotipo) | só logo/asset; fallback geométrico | ✗ não-web |
-| TAN The Whistling | fonte de apoio (assinaturas) | só peças de marca; **não usar na UI** | ✗ não-web |
+| Fonte | Uso na UI | Web? |
+|-------|-----------|------|
+| **Cormorant SC** (serif, versaletes) — alt.: Marcellus SC / EB Garamond SC | Títulos de página, nome da marca no header/sidebar | Google Fonts ✓ |
+| **Inter** (sans — já em uso, `--font`) — alt.: Manrope | Menus, labels, corpo, dados de tabelas/cards | Google Fonts ✓ (já usada) |
 
 **Sub-tarefas:**
-- [ ] Redefinir os tokens em `frontend/src/index.css` (`:root`): remapear `--rose*` / `--plum` / `--ink` / `--line` para o vinho+branco (tabela acima). Como o CSS já usa variáveis, a troca no `:root` cascateia por todo o app.
-- [ ] Importar **Playfair Display** + **Montserrat** (Google Fonts); `--font` = Montserrat; novo `--font-title` = Playfair Display aplicado em h1–h4.
-- [ ] Ajustar cores hardcoded (gradiente de fundo, sombra de foco `rgba(183,110,121,…)`) para o tom vinho.
-- [ ] Trocar o mark "✿" pela marca **MC** / logo da Dra. Mariangel quando o asset estiver disponível.
-- [ ] Revisar contraste (WCAG AA) de texto sobre vinho e vinho sobre claro.
-- [ ] Garantir a identidade também no **login** e na **anamnese pública** (as telas "de fora", que a paciente vê).
+- [ ] Redefinir os tokens em `frontend/src/index.css` (`:root`) para a paleta dourado/creme. Mapeamento sobre os tokens existentes (a troca no `:root` cascateia): `--bg`→`#F5EAD8`; `--surface`→`#FFFDF9`; `--line`→`#E8DCC4`; `--ink`→`#2B2620`; `--muted`→`#8A7F6E`; `--rose`→`#B99D63` (primária sólida); `--rose-dark`→`#6F4513`; `--rose-soft`/`--rose-bg`→`#F1DFB1` (e/ou um creme mais claro p/ hovers sutis); `--plum`→`#2B2620` (títulos/nav).
+- [ ] Novo token `--accent-gradient` = `linear-gradient(135deg, #6F4513, #F1DFB1)` aplicado como **fundo** de `.btn-primary`, `.nav-item-active` e do botão "+ Link de anamnese". ⚠️ **Contraste:** se o texto for branco, encurtar o gradiente até `#B99D63` (não chegar no champanhe claro) ou usar texto bronze `#3A2A12` — validar WCAG AA.
+- [ ] Importar **Cormorant SC** (Google Fonts); novo `--font-title` aplicado em h1–h4 e no nome da marca. Manter **Inter** (`--font`) para toda a UI, só ajustando a cor.
+- [ ] `.stat-icon` (ícones dos cards de métricas): fundo `#F1DFB1` + ícone `#6F4513`, mantendo o badge circular atual.
+- [ ] Links "Ver tudo" / "Ver agenda" / `.link-btn` / `a`: cor `#B99D63`.
+- [ ] `.badge-neutro` e tags como "Cancelado": fundo `#F1DFB1`, texto `#6F4513` (sai o cinza).
+- [ ] Ajustar cores hardcoded: gradiente da `.sidebar` e do `.login-hero`, sombra de foco `rgba(183,110,121,…)`→ tom dourado `rgba(185,157,99,0.25)`, `.intake` (fundo do fluxo público).
+- [ ] Trocar o mark "✿" (`Layout.tsx` / login / anamnese) pelo **monograma dourado "GA"** da marca (asset quando disponível; enquanto isso, "GA" estilizado em dourado).
+- [ ] Garantir a identidade também no **login** e na **anamnese pública** (telas que a paciente vê).
 
-**Aceite:** app em vinho+branco, títulos em Playfair, UI em Montserrat, sem resíduo do tema rosa; login e anamnese coerentes com a marca.
+**Aceite:** app em dourado sobre creme (fundo `#F5EAD8`, cards `#FFFDF9`), títulos em Cormorant SC, UI em Inter, item de menu ativo e botão primário em dourado, ícones de métricas em badge champanhe, sem nenhum resíduo do tema rosa; estrutura/layout/componentes inalterados.
 
 ### Épico F — Tela de cadastro/gestão de usuários da equipe
 Hoje **não há UI** para criar usuários (recepção/profissional/admin) — são criados por *seed* no backend. Para o piloto, a clínica precisa cadastrar a própria equipe pela interface.
@@ -163,7 +169,7 @@ As sub-tarefas de cada épico estão detalhadas nas issues abaixo (criadas a par
 | B — Backup automático + restauração | [#17](https://github.com/Nathan-Rodrigues-Dev-hub/crm-clinica-estetica/issues/17) | `backend` `enhancement` |
 | C — Autosave de rascunho na anamnese pública | [#18](https://github.com/Nathan-Rodrigues-Dev-hub/crm-clinica-estetica/issues/18) | `frontend` `enhancement` |
 | D — Responsividade para iPhone 14+ (Safari iOS) | [#19](https://github.com/Nathan-Rodrigues-Dev-hub/crm-clinica-estetica/issues/19) | `frontend` `enhancement` |
-| E — Identidade visual (vinho + branco, Playfair/Montserrat) | [#20](https://github.com/Nathan-Rodrigues-Dev-hub/crm-clinica-estetica/issues/20) | `frontend` `enhancement` |
+| E — Identidade visual (GA Clinic & Academy — dourado sobre creme, Cormorant SC/Inter) | [#20](https://github.com/Nathan-Rodrigues-Dev-hub/crm-clinica-estetica/issues/20) | `frontend` `enhancement` |
 | F — Cadastro/gestão de usuários da equipe | [#21](https://github.com/Nathan-Rodrigues-Dev-hub/crm-clinica-estetica/issues/21) | `frontend` `backend` `enhancement` |
 
 Milestone: **Piloto - deploy e robustez** (#2).
