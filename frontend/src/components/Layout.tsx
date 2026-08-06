@@ -17,6 +17,7 @@ const MENU: ItemMenu[] = [
   { para: '/agenda', rotulo: 'Agenda', icone: '📅' },
   { para: '/pacientes', rotulo: 'Pacientes', icone: '👤' },
   { para: '/catalogo', rotulo: 'Catálogo', icone: '✦' },
+  { para: '/equipe', rotulo: 'Equipe', icone: '👥', papeis: ['Admin'] },
 ]
 
 const PAPEL_ROTULO: Record<Papel, string> = {

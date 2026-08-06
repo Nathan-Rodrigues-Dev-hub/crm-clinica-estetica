@@ -13,6 +13,9 @@ import type {
   MidiaDto,
   PacienteDto,
   PacienteListItem,
+  AtualizarUsuarioRequest,
+  CriarUsuarioRequest,
+  EquipeUsuario,
   ProcedimentoDto,
   ProfissionalListItem,
   SolicitacaoDetalhe,
@@ -31,6 +34,13 @@ export const authApi = {
 
 export const usuariosApi = {
   profissionais: () => api.get<ProfissionalListItem[]>('/api/usuarios/profissionais'),
+  // Gestão de equipe (só Admin)
+  listar: (incluirInativos = false) =>
+    api.get<EquipeUsuario[]>('/api/usuarios', { params: { incluirInativos } }),
+  criar: (req: CriarUsuarioRequest) => api.post<EquipeUsuario>('/api/usuarios', req),
+  atualizar: (id: string, req: AtualizarUsuarioRequest) =>
+    api.put<EquipeUsuario>(`/api/usuarios/${id}`, req),
+  desativar: (id: string) => api.delete(`/api/usuarios/${id}`),
 }
 
 // ---- Pacientes ----

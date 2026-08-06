@@ -25,6 +25,29 @@ export interface ProfissionalListItem {
   nome: string
 }
 
+// ---- Equipe / usuários (gestão pelo Admin) ----
+export interface EquipeUsuario {
+  id: string
+  nome: string
+  email: string
+  papel: Papel
+  ativo: boolean
+}
+
+export interface CriarUsuarioRequest {
+  nome: string
+  email: string
+  senha: string
+  papel: Papel
+}
+
+export interface AtualizarUsuarioRequest {
+  nome: string
+  papel: Papel
+  ativo: boolean
+  novaSenha?: string | null
+}
+
 // ---- Pacientes ----
 export interface PacienteDto {
   id: string

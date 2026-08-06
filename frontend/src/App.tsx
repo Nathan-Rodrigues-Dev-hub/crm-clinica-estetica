@@ -6,6 +6,7 @@ import { DashboardPage } from './pages/DashboardPage'
 import { PacientesPage } from './pages/PacientesPage'
 import { PacienteDetalhePage } from './pages/PacienteDetalhePage'
 import { CatalogoPage } from './pages/CatalogoPage'
+import { EquipePage } from './pages/EquipePage'
 import { TriagemPage } from './pages/TriagemPage'
 import { TriagemDetalhePage } from './pages/TriagemDetalhePage'
 import { AgendaPage } from './pages/AgendaPage'
@@ -35,6 +36,13 @@ export function App() {
       <Route element={<RequireAuth papeis={['Admin', 'Profissional']} />}>
         <Route element={<Layout />}>
           <Route path="/triagem/:id" element={<TriagemDetalhePage />} />
+        </Route>
+      </Route>
+
+      {/* Gestão de equipe: só Admin */}
+      <Route element={<RequireAuth papeis={['Admin']} />}>
+        <Route element={<Layout />}>
+          <Route path="/equipe" element={<EquipePage />} />
         </Route>
       </Route>
 
