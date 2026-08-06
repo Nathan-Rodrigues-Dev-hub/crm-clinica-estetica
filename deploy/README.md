@@ -98,4 +98,4 @@ docker compose -f docker-compose.prod.yml down
 - [ ] Enviar uma anamnese pelo link público conclui com sucesso.
 - [ ] Após `docker compose down` e `up`, pacientes/anamneses/agenda **e fotos** continuam lá.
 
-O **backup automático + restauração** (Épico B, issue #17) é o passo seguinte — ver [`backup/README.md`](backup/README.md).
+> Os dados persistem em volumes nomeados do Docker (`crm_pgdata`, `crm_uploads`). Backup automático offsite está **fora do escopo** do piloto (decisão do dono do projeto).
