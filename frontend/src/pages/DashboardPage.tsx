@@ -36,7 +36,7 @@ export function DashboardPage() {
 
   if (carregando) return <Spinner full label="Carregando painel…" />
 
-  const podeGerarLink = temPapel('Admin', 'Recepcao')
+  const podeGerarLink = temPapel('Admin', 'Recepcao', 'Profissional')
 
   return (
     <>

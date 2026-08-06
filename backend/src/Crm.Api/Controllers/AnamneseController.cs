@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Crm.Api.Controllers;
 
-/// <summary>Uso interno da clínica (recepção): gera o link tokenizado de anamnese.</summary>
-[Authorize(Roles = Roles.AdminOuRecepcao)]
+/// <summary>Uso interno da clínica (recepção/profissional/admin): gera o link tokenizado de anamnese.</summary>
+[Authorize(Roles = Roles.Interno)]
 public class AnamneseController : ApiControllerBase
 {
     private readonly AnamneseLinkService _service;

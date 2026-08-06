@@ -14,6 +14,10 @@ export function formatarDataHora(iso: string | null | undefined): string {
 
 export function formatarData(iso: string | null | undefined): string {
   if (!iso) return '—'
+  // Datas "date-only" (ex.: nascimento, YYYY-MM-DD) devem ser formatadas sem passar
+  // pelo fuso: new Date('1990-03-15') vira meia-noite UTC e "volta" um dia no Brasil.
+  const soData = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
+  if (soData) return `${soData[3]}/${soData[2]}/${soData[1]}`
   const d = new Date(iso)
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
