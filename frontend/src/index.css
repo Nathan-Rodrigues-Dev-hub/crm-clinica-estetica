@@ -50,6 +50,12 @@ body {
   -webkit-font-smoothing: antialiased;
   font-size: 15px;
   line-height: 1.5;
+  overflow-x: hidden; /* evita scroll horizontal em viewport estreita (iPhone) */
+}
+
+/* Realce de toque discreto (dourado) no lugar do cinza padrão do iOS */
+button, a, .chip, .sn-btn, .nav-item, .icon-btn, label.checkbox {
+  -webkit-tap-highlight-color: rgba(185, 157, 99, 0.2);
 }
 
 h1, h2, h3, h4 { margin: 0; font-family: var(--font-title); font-weight: 600; letter-spacing: 0.01em; color: var(--plum); }
@@ -57,7 +63,7 @@ a { color: var(--rose); }
 .muted { color: var(--muted); margin: 0; }
 
 /* ------------------------------------------------------------------ shell */
-.app-shell { display: flex; min-height: 100vh; }
+.app-shell { display: flex; min-height: 100vh; min-height: 100dvh; }
 
 .sidebar {
   width: 252px;
@@ -69,6 +75,7 @@ a { color: var(--rose); }
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100dvh;
 }
 
 .brand { display: flex; align-items: center; gap: 12px; padding: 6px 8px 20px; }
@@ -229,10 +236,10 @@ table.data tbody tr:last-child td { border-bottom: none; }
   display: grid; place-items: center; z-index: 50; padding: 20px; animation: fade 0.15s ease;
 }
 .modal {
-  background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); width: 100%;
-  max-height: 90vh; overflow: auto; animation: pop 0.15s ease;
+  background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); width: 100%;
+  max-height: 90vh; max-height: 90dvh; overflow: auto; animation: pop 0.15s ease;
 }
-.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: #fff; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); z-index: 1; }
 .modal-body { padding: 20px; }
 @keyframes fade { from { opacity: 0; } }
 @keyframes pop { from { opacity: 0; transform: translateY(8px); } }
@@ -250,7 +257,7 @@ table.data tbody tr:last-child td { border-bottom: none; }
 
 /* ------------------------------------------------------------------ login */
 .login-wrap {
-  min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr;
+  min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: 1fr 1fr;
 }
 .login-hero {
   background: linear-gradient(150deg, var(--rose-dark) 0%, var(--plum) 100%); color: #fff;
@@ -305,7 +312,11 @@ table.data tbody tr:last-child td { border-bottom: none; }
 .midia-info { padding: 10px 12px; }
 
 /* ------------------------------------------------------------------ intake público */
-.intake { min-height: 100vh; background: linear-gradient(180deg, var(--rose-bg), var(--bg)); padding: 24px 16px 60px; }
+.intake {
+  min-height: 100vh; min-height: 100dvh;
+  background: linear-gradient(180deg, var(--rose-bg), var(--bg));
+  padding: max(24px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(60px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
 .intake-container { max-width: 720px; margin: 0 auto; }
 .intake-brand { display: flex; align-items: center; gap: 12px; justify-content: center; margin: 12px 0 24px; }
 .intake-brand .brand-mark { width: 44px; height: 44px; font-size: 22px; }
@@ -332,18 +343,67 @@ table.data tbody tr:last-child td { border-bottom: none; }
   .grid-2 { grid-template-columns: 1fr; }
   .login-wrap { grid-template-columns: 1fr; }
   .login-hero { display: none; }
+  .login-panel {
+    padding: 32px max(20px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  }
 }
 
 @media (max-width: 760px) {
   .only-mobile { display: grid; }
   .only-desktop { display: none; }
+
+  /* Drawer off-canvas: ocupa a altura visível real e respeita notch/home indicator */
   .sidebar {
-    position: fixed; z-index: 30; left: 0; top: 0; transform: translateX(-100%);
+    position: fixed; z-index: 40; left: 0; top: 0;
+    width: min(84vw, 300px); height: 100dvh;
+    transform: translateX(-100%);
     transition: transform 0.22s ease; box-shadow: var(--shadow);
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    padding-left: max(16px, env(safe-area-inset-left));
   }
   .sidebar-open { transform: translateX(0); }
-  .content { padding: 18px; }
+
+  /* Backdrop cobrindo a viewport inteira, atrás do drawer */
+  .backdrop {
+    position: fixed; inset: 0; z-index: 35;
+    background: rgba(43, 38, 32, 0.42); backdrop-filter: blur(1px);
+    animation: fade 0.15s ease;
+  }
+
+  /* Topbar fixa não pode ficar sob o Dynamic Island/notch */
+  .topbar {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-top: env(safe-area-inset-top);
+    height: auto; min-height: 62px;
+  }
+
+  .content {
+    padding: 18px max(18px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+  }
+
   .form-row, .form-row-3 { grid-template-columns: 1fr; }
   .kv { grid-template-columns: 1fr; gap: 2px 0; }
   .kv dt { margin-top: 8px; }
+
+  /* Evita o auto-zoom do Safari iOS ao focar campo (precisa ser >= 16px) */
+  input, select, textarea { font-size: 16px; }
+
+  /* Alvos de toque >= 44x44px */
+  .btn { min-height: 44px; }
+  .icon-btn { width: 44px; height: 44px; }
+  .nav-item { padding: 12px; }
+  .sn-btn { min-height: 44px; padding: 10px 18px; }
+  .chip { min-height: 40px; display: inline-flex; align-items: center; }
+
+  /* Modais viram bottom-sheet: colam embaixo, largura total, rolam por dentro */
+  .modal-overlay { place-items: end center; padding: 0; }
+  .modal {
+    max-width: 100% !important;
+    border-radius: var(--radius) var(--radius) 0 0;
+    max-height: 92dvh;
+  }
+  .modal-body { padding: 20px 20px max(20px, env(safe-area-inset-bottom)); }
+  @keyframes pop { from { opacity: 0; transform: translateY(24px); } }
 }
