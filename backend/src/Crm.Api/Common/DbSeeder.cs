@@ -59,17 +59,34 @@ public static class DbSeeder
             await db.SaveChangesAsync();
         }
 
-        // Seed opcional de procedimentos de exemplo (Seed:Procedimentos = true, padrão em Development).
+        // Catálogo inicial da clínica (Seed:Procedimentos = true, padrão). Roda uma vez,
+        // em banco sem procedimentos; a clínica adiciona/edita os demais pela tela de Catálogo.
         var seedProcedimentos = config.GetValue<bool?>("Seed:Procedimentos") ?? true;
         if (seedProcedimentos && !await db.Procedimentos.AnyAsync())
         {
             db.Procedimentos.AddRange(
-                new Procedimento { ClinicaId = clinica.Id, Nome = "Limpeza de pele profunda", Categoria = "Facial", Descricao = "Higienização, extração e hidratação.", DuracaoMinutos = 60, ValorReferencia = 180m, Ativo = true },
-                new Procedimento { ClinicaId = clinica.Id, Nome = "Peeling químico", Categoria = "Facial", Descricao = "Renovação celular com ácidos.", DuracaoMinutos = 45, ValorReferencia = 250m, Ativo = true },
-                new Procedimento { ClinicaId = clinica.Id, Nome = "Massagem modeladora", Categoria = "Corporal", Descricao = "Redução de medidas e drenagem.", DuracaoMinutos = 50, ValorReferencia = 150m, Ativo = true },
-                new Procedimento { ClinicaId = clinica.Id, Nome = "Drenagem linfática", Categoria = "Corporal", Descricao = "Estímulo do sistema linfático.", DuracaoMinutos = 60, ValorReferencia = 160m, Ativo = true },
-                new Procedimento { ClinicaId = clinica.Id, Nome = "Aplicação de toxina botulínica", Categoria = "Injetáveis", Descricao = "Atenuação de linhas de expressão.", DuracaoMinutos = 30, ValorReferencia = 900m, Ativo = true },
-                new Procedimento { ClinicaId = clinica.Id, Nome = "Microagulhamento", Categoria = "Facial", Descricao = "Indução percutânea de colágeno.", DuracaoMinutos = 60, ValorReferencia = 350m, Ativo = true });
+                // Toxina botulínica
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Botox - terço superior", Categoria = "Toxina Botulínica", DuracaoMinutos = 30, ValorReferencia = 1200m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Botox - Fullface", Categoria = "Toxina Botulínica", DuracaoMinutos = 45, ValorReferencia = 2500m, Ativo = true },
+                // Preenchimento
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Preenchimento - Lábios", Categoria = "Preenchimento", DuracaoMinutos = 40, ValorReferencia = 1600m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Preenchimento - Mento", Categoria = "Preenchimento", Descricao = "Valor a partir de.", DuracaoMinutos = 40, ValorReferencia = 1800m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Preenchimento - Malar", Categoria = "Preenchimento", Descricao = "Valor a partir de.", DuracaoMinutos = 40, ValorReferencia = 1800m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Preenchimento - Têmpora", Categoria = "Preenchimento", Descricao = "Valor a partir de.", DuracaoMinutos = 40, ValorReferencia = 1800m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Preenchimento - Mandíbula", Categoria = "Preenchimento", Descricao = "Valor a partir de.", DuracaoMinutos = 40, ValorReferencia = 1800m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Rinomodelação não cirúrgica", Categoria = "Preenchimento", DuracaoMinutos = 40, ValorReferencia = 2200m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Bigode chinês", Categoria = "Preenchimento", DuracaoMinutos = 30, ValorReferencia = 1200m, Ativo = true },
+                // Fios de sustentação
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Fios de sustentação", Categoria = "Fios de Sustentação", Descricao = "Valor a partir de.", DuracaoMinutos = 60, ValorReferencia = 2200m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Fios lisos", Categoria = "Fios de Sustentação", Descricao = "Valor a partir de.", DuracaoMinutos = 60, ValorReferencia = 1200m, Ativo = true },
+                // Bioestimulador
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Bioestimulador - rosto", Categoria = "Bioestimulador", DuracaoMinutos = 60, ValorReferencia = 2100m, Ativo = true },
+                // Facial / outros
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Remoção de verrugas", Categoria = "Facial", Descricao = "Valor a partir de.", DuracaoMinutos = 30, ValorReferencia = 450m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Resete Cell", Categoria = "Facial", Descricao = "Protocolo de 5 sessões.", DuracaoMinutos = 60, ValorReferencia = 2500m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Limpeza de pele", Categoria = "Facial", DuracaoMinutos = 60, ValorReferencia = 180m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Blefaroplastia sem corte", Categoria = "Facial", Descricao = "Protocolo de 3 sessões.", DuracaoMinutos = 45, ValorReferencia = 1000m, Ativo = true },
+                new Procedimento { ClinicaId = clinica.Id, Nome = "Radiofrequência - rosto", Categoria = "Facial", Descricao = "1 sessão.", DuracaoMinutos = 30, ValorReferencia = 350m, Ativo = true });
 
             await db.SaveChangesAsync();
         }
