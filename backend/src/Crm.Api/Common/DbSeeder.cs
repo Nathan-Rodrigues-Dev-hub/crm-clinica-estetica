@@ -64,20 +64,46 @@ public static class DbSeeder
         }
 
         // Conta SuperAdmin (suporte/dono da plataforma) — independente do bloco acima, para não
-        // exigir recriar o banco em clínicas já existentes. Só cria se a senha estiver configurada
+        // exigir recriar o banco em clínicas já existentes. Só age se a senha estiver configurada
         // (sem default: não queremos um SuperAdmin com credencial previsível em produção).
-        var senhaSuperAdmin = config["Seed:SuperAdminSenha"];
-        if (!string.IsNullOrWhiteSpace(senhaSuperAdmin) && !await db.Usuarios.AnyAsync(u => u.Papel == Papel.SuperAdmin))
+        // Nunca deixa uma falha aqui derrubar a aplicação inteira (já aconteceu: e-mail
+        // coincidindo com uma conta Admin existente estourava constraint única e crashava o app).
+        try
         {
-            db.Usuarios.Add(new Usuario
+            var senhaSuperAdmin = config["Seed:SuperAdminSenha"];
+            if (!string.IsNullOrWhiteSpace(senhaSuperAdmin))
             {
-                ClinicaId = clinica.Id,
-                Nome = config["Seed:SuperAdminNome"] ?? "Suporte",
-                Email = (config["Seed:SuperAdminEmail"] ?? "suporte@crm.local").ToLowerInvariant(),
-                SenhaHash = hasher.Hash(senhaSuperAdmin),
-                Papel = Papel.SuperAdmin
-            });
-            await db.SaveChangesAsync();
+                var emailSuperAdmin = (config["Seed:SuperAdminEmail"] ?? "suporte@crm.local").ToLowerInvariant();
+                var existente = await db.Usuarios.FirstOrDefaultAsync(u => u.Email == emailSuperAdmin);
+
+                if (existente is null)
+                {
+                    db.Usuarios.Add(new Usuario
+                    {
+                        ClinicaId = clinica.Id,
+                        Nome = config["Seed:SuperAdminNome"] ?? "Suporte",
+                        Email = emailSuperAdmin,
+                        SenhaHash = hasher.Hash(senhaSuperAdmin),
+                        Papel = Papel.SuperAdmin
+                    });
+                    await db.SaveChangesAsync();
+                }
+                else if (existente.Papel == Papel.Admin)
+                {
+                    // E-mail já é de uma conta Admin existente (ex.: o dono da plataforma se
+                    // cadastrou como Admin da própria clínica antes) — promove em vez de duplicar.
+                    existente.Papel = Papel.SuperAdmin;
+                    existente.SenhaHash = hasher.Hash(senhaSuperAdmin);
+                    existente.Ativo = true;
+                    await db.SaveChangesAsync();
+                }
+                // Se o e-mail já pertence a Profissional/Recepção, não promove sozinho — coincidência
+                // de e-mail não deve virar SuperAdmin sem confirmação manual.
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[DbSeeder] Falha ao semear/promover SuperAdmin (aplicação segue normalmente): {ex.Message}");
         }
 
         // Catálogo inicial da clínica (Seed:Procedimentos = true, padrão). Roda uma vez,
