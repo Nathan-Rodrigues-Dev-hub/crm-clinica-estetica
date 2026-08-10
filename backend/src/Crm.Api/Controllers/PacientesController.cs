@@ -1,4 +1,5 @@
 using Crm.Api.Common;
+using Crm.Application.Features.Anamnese;
 using Crm.Application.Features.Pacientes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,11 @@ public class PacientesController : ApiControllerBase
     [HttpGet("{id:guid}/anamneses")]
     public async Task<IActionResult> Anamneses(Guid id, CancellationToken ct)
         => ToResponse(await _service.ListarAnamnesesAsync(id, ct));
+
+    /// <summary>Registra manualmente uma anamnese (ficha em papel ou fallback sem internet) — qualquer papel interno pode transcrever.</summary>
+    [HttpPost("{id:guid}/anamneses")]
+    public async Task<IActionResult> CriarAnamneseManual(Guid id, [FromBody] CriarAnamneseManualRequest req, CancellationToken ct)
+        => ToResponse(await _service.CriarAnamneseManualAsync(id, req, ct), StatusCodes.Status201Created);
 
     /// <summary>Verifica possível duplicidade por CPF/telefone antes de criar (RF08).</summary>
     [HttpGet("duplicidade")]

@@ -1,6 +1,7 @@
 using Crm.Application.Common;
 using Crm.Application.Common.Interfaces;
 using Crm.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 namespace Crm.Application.Features.Anamnese;
@@ -25,6 +26,10 @@ public class AnamneseLinkService
 
     public async Task<Result<LinkGeradoDto>> GerarAsync(GerarLinkRequest req, CancellationToken ct = default)
     {
+        if (req.PacienteId is { } pacienteId &&
+            !await _db.Pacientes.AnyAsync(p => p.Id == pacienteId && p.ClinicaId == _user.ClinicaId, ct))
+            return Result.Falha<LinkGeradoDto>("Paciente não encontrado.", ErrorType.NotFound);
+
         var validadeHoras = req.ValidadeHoras is > 0 ? req.ValidadeHoras.Value : 168; // 7 dias
         var expiracao = _clock.UtcNow.AddHours(validadeHoras);
 
@@ -33,6 +38,7 @@ public class AnamneseLinkService
             ClinicaId = _user.ClinicaId!.Value,
             Token = _tokens.GerarUrlSafe(16), // 128 bits
             TelefoneDestino = req.TelefoneDestino?.Trim(),
+            PacienteId = req.PacienteId,
             Expiracao = expiracao,
             Usado = false
         };

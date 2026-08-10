@@ -8,6 +8,7 @@ import { Badge, Card, PageHeader } from '../components/ui'
 import { Spinner } from '../components/Spinner'
 import { MidiaGaleria } from '../components/MidiaGaleria'
 import { DetalheAnamnese } from '../components/DetalheAnamnese'
+import { AnamneseManualForm } from '../components/AnamneseManualForm'
 import { PacienteFormModal } from './PacienteFormModal'
 import { formatarCpf, formatarData, formatarTelefone } from '../lib/format'
 import type { PacienteDto } from '../api/types'
@@ -24,6 +25,7 @@ export function PacienteDetalhePage() {
   const [carregando, setCarregando] = useState(true)
   const [editar, setEditar] = useState(false)
   const [verAnamneses, setVerAnamneses] = useState(false)
+  const [anamneseManual, setAnamneseManual] = useState(false)
 
   const carregar = () => {
     setCarregando(true)
@@ -44,6 +46,7 @@ export function PacienteDetalhePage() {
           <div className="row">
             <button className="btn btn-ghost" onClick={() => navigate('/pacientes')}>← Voltar</button>
             {podeVerAnamnese && <button className="btn btn-soft" onClick={() => setVerAnamneses(true)}>Ver anamneses</button>}
+            <button className="btn btn-soft" onClick={() => setAnamneseManual(true)}>+ Anamnese manual</button>
             <button className="btn btn-primary" onClick={() => setEditar(true)}>Editar</button>
           </div>
         }
@@ -81,6 +84,12 @@ export function PacienteDetalhePage() {
       {podeVerAnamnese && (
         <DetalheAnamnese pacienteId={paciente.id} aberto={verAnamneses} onFechar={() => setVerAnamneses(false)} />
       )}
+      <AnamneseManualForm
+        pacienteId={paciente.id}
+        aberto={anamneseManual}
+        onFechar={() => setAnamneseManual(false)}
+        onCriada={() => setAnamneseManual(false)}
+      />
     </>
   )
 }

@@ -4,6 +4,7 @@ using Crm.Application.Features.Anamnese;
 using Crm.Domain.Entities;
 using Crm.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using DomainAnamnese = Crm.Domain.Entities.Anamnese;
 
 namespace Crm.Application.Features.Pacientes;
 
@@ -126,6 +127,38 @@ public class PacienteService
             .ToListAsync(ct);
 
         return Result.Ok(itens);
+    }
+
+    /// <summary>
+    /// Registro manual de anamnese — recepção transcrevendo ficha em papel (paciente com cadastro
+    /// antigo) ou fallback quando a internet cai durante o atendimento. Não passa pelo fluxo de
+    /// triagem: só grava a anamnese vinculada diretamente ao paciente já selecionado.
+    /// </summary>
+    public async Task<Result<AnamneseDetalhe>> CriarAnamneseManualAsync(Guid pacienteId, CriarAnamneseManualRequest req, CancellationToken ct = default)
+    {
+        var existe = await _db.Pacientes.AsNoTracking()
+            .AnyAsync(p => p.Id == pacienteId && p.ClinicaId == _user.ClinicaId, ct);
+        if (!existe) return Result.Falha<AnamneseDetalhe>("Paciente não encontrado.", ErrorType.NotFound);
+
+        var anamnese = new DomainAnamnese
+        {
+            ClinicaId = _user.ClinicaId!.Value,
+            PacienteId = pacienteId,
+            DataPreenchimento = req.DataPreenchimento ?? _clock.UtcNow,
+            Peso = req.Peso,
+            Altura = req.Altura,
+            PressaoArterial = req.PressaoArterial?.Trim(),
+            MotivoEstetico = req.MotivoEstetico?.Trim(),
+            AceiteDeclaracao = req.AceiteDeclaracao,
+            DataHoraAceite = req.AceiteDeclaracao ? _clock.UtcNow : null,
+            Respostas = req.Respostas ?? new RespostasAnamnese()
+        };
+        anamnese.RecalcularImc();
+        _db.Anamneses.Add(anamnese);
+        await _db.SaveChangesAsync(ct);
+
+        return Result.Ok(new AnamneseDetalhe(anamnese.Id, anamnese.DataPreenchimento, anamnese.Peso, anamnese.Altura, anamnese.Imc,
+            anamnese.PressaoArterial, anamnese.MotivoEstetico, anamnese.AceiteDeclaracao, anamnese.Respostas));
     }
 
     /// <summary>RF08 — avisar sobre possível duplicidade por CPF ou telefone antes de criar.</summary>
