@@ -181,6 +181,9 @@ namespace Crm.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CriadoEm")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("LimiteProfissionais")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasColumnType("text");

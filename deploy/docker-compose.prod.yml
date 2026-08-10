@@ -42,6 +42,7 @@ services:
       Seed__AdminNome: "${ADMIN_NOME}"
       Seed__ClinicaNome: "${CLINICA_NOME}"
       Seed__Procedimentos: "${SEED_PROCEDIMENTOS:-false}"
+      Seed__LimiteProfissionais: "${LIMITE_PROFISSIONAIS:-5}"
     volumes:
       - crm_uploads:/data/uploads
 
