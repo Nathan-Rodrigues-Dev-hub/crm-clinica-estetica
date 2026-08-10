@@ -33,14 +33,14 @@ export function App() {
       </Route>
 
       {/* Detalhe de triagem exige Admin/Profissional (dado clínico) */}
-      <Route element={<RequireAuth papeis={['Admin', 'Profissional']} />}>
+      <Route element={<RequireAuth papeis={['Admin', 'Profissional', 'SuperAdmin']} />}>
         <Route element={<Layout />}>
           <Route path="/triagem/:id" element={<TriagemDetalhePage />} />
         </Route>
       </Route>
 
-      {/* Gestão de equipe: só Admin */}
-      <Route element={<RequireAuth papeis={['Admin']} />}>
+      {/* Gestão de equipe: Admin da clínica ou SuperAdmin */}
+      <Route element={<RequireAuth papeis={['Admin', 'SuperAdmin']} />}>
         <Route element={<Layout />}>
           <Route path="/equipe" element={<EquipePage />} />
         </Route>

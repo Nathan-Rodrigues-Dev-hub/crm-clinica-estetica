@@ -22,7 +22,7 @@ function tomStatus(s: StatusSolicitacao) {
 export function TriagemPage() {
   const navigate = useNavigate()
   const { temPapel } = useAuth()
-  const podeVerDetalhe = temPapel('Admin', 'Profissional')
+  const podeVerDetalhe = temPapel('Admin', 'Profissional', 'SuperAdmin')
 
   const [filtro, setFiltro] = useState<StatusSolicitacao | undefined>(undefined)
   const [itens, setItens] = useState<SolicitacaoListItem[]>([])

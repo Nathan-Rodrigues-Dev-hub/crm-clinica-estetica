@@ -24,7 +24,7 @@ const novo: Editando = { nome: '', descricao: '', categoria: '', duracaoMinutos:
 export function CatalogoPage() {
   const { temPapel } = useAuth()
   const toast = useToast()
-  const podeEscrever = temPapel('Admin', 'Recepcao')
+  const podeEscrever = temPapel('Admin', 'Recepcao', 'SuperAdmin')
 
   const [itens, setItens] = useState<ProcedimentoDto[]>([])
   const [carregando, setCarregando] = useState(true)
