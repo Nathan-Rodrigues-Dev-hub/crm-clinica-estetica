@@ -1,4 +1,4 @@
-using Crm.Domain.Entities;
+using Crm.Application.Features.Anamnese;
 using Crm.Domain.Enums;
 
 namespace Crm.Application.Features.Triagem;
@@ -13,10 +13,6 @@ public record SolicitacaoDetalhe(
     string ProcedimentoInteresse, StatusSolicitacao Status, DateTime DataEnvio,
     string? MotivoRecusa, Guid? AgendamentoId,
     AnamneseDetalhe Anamnese);
-
-public record AnamneseDetalhe(
-    Guid Id, DateTime DataPreenchimento, decimal? Peso, decimal? Altura, decimal? Imc,
-    string? PressaoArterial, string? MotivoEstetico, bool AceiteDeclaracao, RespostasAnamnese Respostas);
 
 public record AgendarDecisaoRequest(
     Guid UsuarioProfissionalId, Guid? ProcedimentoId, DateTime Inicio, decimal? ValorCobrado, string? Observacao);

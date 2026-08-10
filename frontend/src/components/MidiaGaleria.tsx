@@ -5,6 +5,7 @@ import { useToast } from './Toast'
 import { Modal } from './Modal'
 import { Field } from './ui'
 import { MidiaThumb } from './MidiaThumb'
+import { MidiaLightbox } from './MidiaLightbox'
 import { formatarData } from '../lib/format'
 import type { EtiquetaMidia, MidiaDto, ProcedimentoDto } from '../api/types'
 
@@ -19,6 +20,10 @@ export function MidiaGaleria({ pacienteId }: { pacienteId: string }) {
   const [itens, setItens] = useState<MidiaDto[]>([])
   const [carregando, setCarregando] = useState(true)
   const [modalUpload, setModalUpload] = useState(false)
+  const [visualizando, setVisualizando] = useState<MidiaDto | null>(null)
+  const [renomeandoId, setRenomeandoId] = useState<string | null>(null)
+  const [novoNome, setNovoNome] = useState('')
+  const [salvandoNome, setSalvandoNome] = useState(false)
 
   const carregar = () => {
     setCarregando(true)
@@ -26,6 +31,26 @@ export function MidiaGaleria({ pacienteId }: { pacienteId: string }) {
   }
 
   useEffect(carregar, [pacienteId])
+
+  const iniciarRenomear = (m: MidiaDto) => {
+    setRenomeandoId(m.id)
+    setNovoNome(m.nomeArquivo)
+  }
+
+  const salvarNome = async (m: MidiaDto) => {
+    if (!novoNome.trim()) return toast.erro('Informe um nome para o arquivo.')
+    setSalvandoNome(true)
+    try {
+      const res = await midiasApi.renomear(m.id, novoNome.trim())
+      setItens((prev) => prev.map((it) => (it.id === m.id ? res.data : it)))
+      toast.sucesso('Arquivo renomeado.')
+      setRenomeandoId(null)
+    } catch (e) {
+      toast.erro(mensagemErro(e))
+    } finally {
+      setSalvandoNome(false)
+    }
+  }
 
   const baixar = async (m: MidiaDto) => {
     try {
@@ -70,17 +95,38 @@ export function MidiaGaleria({ pacienteId }: { pacienteId: string }) {
         <div className="midia-grid">
           {itens.map((m) => (
             <div key={m.id} className="midia-card">
-              <MidiaThumb midia={m} />
+              <div className="midia-thumb-wrap" onClick={() => setVisualizando(m)}>
+                <MidiaThumb midia={m} />
+                <button className="midia-maximize" onClick={(e) => { e.stopPropagation(); setVisualizando(m) }} title="Ver em tela cheia" aria-label="Ver em tela cheia">⛶</button>
+              </div>
               <div className="midia-info">
                 <div className="row spread">
                   <span className={`badge badge-${tomEtiqueta(m.etiqueta)}`}>{m.etiqueta}</span>
                   <small className="muted">{formatarData(m.data)}</small>
                 </div>
+
+                {renomeandoId === m.id ? (
+                  <div className="row" style={{ marginTop: 8, gap: 6 }}>
+                    <input
+                      value={novoNome}
+                      onChange={(e) => setNovoNome(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && salvarNome(m)}
+                      autoFocus
+                      style={{ flex: 1, minWidth: 0 }}
+                    />
+                    <button className="btn btn-primary btn-sm" onClick={() => salvarNome(m)} disabled={salvandoNome}>OK</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setRenomeandoId(null)}>✕</button>
+                  </div>
+                ) : (
+                  <p className="midia-nome" title={m.nomeArquivo}>{m.nomeArquivo}</p>
+                )}
+
                 <div className="pill-list" style={{ marginTop: 6 }}>
                   {m.consentimentoClinico && <span className="badge badge-neutro">Consent. clínico</span>}
                   {m.consentimentoPublico && <span className="badge badge-neutro">Consent. público</span>}
                 </div>
-                <div className="row" style={{ marginTop: 8, gap: 6 }}>
+                <div className="row" style={{ marginTop: 8, gap: 6, flexWrap: 'wrap' }}>
+                  <button className="btn btn-ghost btn-sm" onClick={() => iniciarRenomear(m)}>Renomear</button>
                   <button className="btn btn-ghost btn-sm" onClick={() => baixar(m)}>Baixar</button>
                   <button className="btn btn-danger btn-sm" onClick={() => remover(m)}>Excluir</button>
                 </div>
@@ -91,6 +137,7 @@ export function MidiaGaleria({ pacienteId }: { pacienteId: string }) {
       )}
 
       {modalUpload && <UploadModal pacienteId={pacienteId} onFechar={() => setModalUpload(false)} onEnviado={() => { setModalUpload(false); carregar() }} />}
+      {visualizando && <MidiaLightbox midia={visualizando} onFechar={() => setVisualizando(null)} />}
     </div>
   )
 }

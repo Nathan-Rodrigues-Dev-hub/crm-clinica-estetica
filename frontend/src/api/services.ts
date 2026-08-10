@@ -2,6 +2,7 @@ import { api } from './client'
 import type {
   AberturaLinkDto,
   AgendamentoDto,
+  AnamneseDetalhe,
   AtualizarProcedimentoRequest,
   CriarAgendamentoRequest,
   CriarPacienteRequest,
@@ -54,6 +55,7 @@ export const pacientesApi = {
     }),
   criar: (req: CriarPacienteRequest) => api.post<PacienteDto>('/api/pacientes', req),
   atualizar: (id: string, req: CriarPacienteRequest) => api.put<PacienteDto>(`/api/pacientes/${id}`, req),
+  anamneses: (id: string) => api.get<AnamneseDetalhe[]>(`/api/pacientes/${id}/anamneses`),
 }
 
 // ---- Procedimentos ----
@@ -114,5 +116,6 @@ export const midiasApi = {
   upload: (form: FormData) =>
     api.post<MidiaDto>('/api/midias', form, { headers: { 'Content-Type': 'multipart/form-data' } }),
   conteudo: (id: string) => api.get<Blob>(`/api/midias/${id}/conteudo`, { responseType: 'blob' }),
+  renomear: (id: string, nomeArquivo: string) => api.patch<MidiaDto>(`/api/midias/${id}`, { nomeArquivo }),
   remover: (id: string) => api.delete(`/api/midias/${id}`),
 }

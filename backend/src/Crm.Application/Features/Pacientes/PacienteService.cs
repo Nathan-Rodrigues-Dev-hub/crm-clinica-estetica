@@ -1,5 +1,6 @@
 using Crm.Application.Common;
 using Crm.Application.Common.Interfaces;
+using Crm.Application.Features.Anamnese;
 using Crm.Domain.Entities;
 using Crm.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -105,6 +106,23 @@ public class PacienteService
             .OrderBy(p => p.Nome)
             .Skip((page - 1) * pageSize).Take(pageSize)
             .Select(p => new PacienteListItem(p.Id, p.Nome, p.Cpf, p.Telefone, p.CpfPendente))
+            .ToListAsync(ct);
+
+        return Result.Ok(itens);
+    }
+
+    /// <summary>Histórico de anamneses da paciente, mais recente primeiro (dado clínico sensível — controlar acesso no controller).</summary>
+    public async Task<Result<List<AnamneseDetalhe>>> ListarAnamnesesAsync(Guid pacienteId, CancellationToken ct = default)
+    {
+        var existe = await _db.Pacientes.AsNoTracking()
+            .AnyAsync(p => p.Id == pacienteId && p.ClinicaId == _user.ClinicaId, ct);
+        if (!existe) return Result.Falha<List<AnamneseDetalhe>>("Paciente não encontrado.", ErrorType.NotFound);
+
+        var itens = await _db.Anamneses.AsNoTracking()
+            .Where(a => a.PacienteId == pacienteId && a.ClinicaId == _user.ClinicaId)
+            .OrderByDescending(a => a.DataPreenchimento)
+            .Select(a => new AnamneseDetalhe(a.Id, a.DataPreenchimento, a.Peso, a.Altura, a.Imc,
+                a.PressaoArterial, a.MotivoEstetico, a.AceiteDeclaracao, a.Respostas))
             .ToListAsync(ct);
 
         return Result.Ok(itens);

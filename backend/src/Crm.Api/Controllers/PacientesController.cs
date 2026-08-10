@@ -21,6 +21,12 @@ public class PacientesController : ApiControllerBase
     public async Task<IActionResult> Obter(Guid id, CancellationToken ct)
         => ToResponse(await _service.ObterAsync(id, ct));
 
+    /// <summary>Histórico de anamneses da paciente (dado clínico sensível — Admin/Profissional).</summary>
+    [Authorize(Roles = Roles.AdminOuProfissional)]
+    [HttpGet("{id:guid}/anamneses")]
+    public async Task<IActionResult> Anamneses(Guid id, CancellationToken ct)
+        => ToResponse(await _service.ListarAnamnesesAsync(id, ct));
+
     /// <summary>Verifica possível duplicidade por CPF/telefone antes de criar (RF08).</summary>
     [HttpGet("duplicidade")]
     public async Task<IActionResult> Duplicidade([FromQuery] string? cpf, [FromQuery] string? telefone, CancellationToken ct)
