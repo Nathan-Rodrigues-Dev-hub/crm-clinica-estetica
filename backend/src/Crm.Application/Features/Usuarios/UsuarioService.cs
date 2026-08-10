@@ -45,12 +45,12 @@ public class UsuarioService
         return Result.Ok(itens);
     }
 
-    // ---------------------------------------------------------- gestão de equipe (Admin)
+    // ---------------------------------------------------------- gestão de equipe (Admin / SuperAdmin)
 
-    /// <summary>Lista os membros da equipe da clínica (Admin).</summary>
+    /// <summary>Lista os membros da equipe da clínica (Admin/SuperAdmin). Contas SuperAdmin nunca aparecem aqui.</summary>
     public async Task<Result<List<EquipeUsuarioDto>>> ListarEquipeAsync(bool incluirInativos, CancellationToken ct = default)
     {
-        var query = _db.Usuarios.AsNoTracking().Where(u => u.ClinicaId == _user.ClinicaId);
+        var query = _db.Usuarios.AsNoTracking().Where(u => u.ClinicaId == _user.ClinicaId && u.Papel != Papel.SuperAdmin);
         if (!incluirInativos) query = query.Where(u => u.Ativo);
 
         var itens = await query
@@ -61,9 +61,14 @@ public class UsuarioService
         return Result.Ok(itens);
     }
 
-    /// <summary>Cria um membro da equipe com senha inicial definida pelo Admin.</summary>
+    /// <summary>Cria um membro da equipe com senha inicial definida pelo Admin/SuperAdmin. Contas Profissional só via SuperAdmin.</summary>
     public async Task<Result<EquipeUsuarioDto>> CriarAsync(CriarUsuarioRequest req, CancellationToken ct = default)
     {
+        if (req.Papel == Papel.SuperAdmin)
+            return Result.Falha<EquipeUsuarioDto>("Papel inválido.", ErrorType.Forbidden);
+        if (req.Papel == Papel.Profissional && _user.Papel != Papel.SuperAdmin)
+            return Result.Falha<EquipeUsuarioDto>("Somente o suporte pode cadastrar contas de Profissional. Peça a liberação da vaga.", ErrorType.Forbidden);
+
         if (string.IsNullOrWhiteSpace(req.Nome))
             return Result.Falha<EquipeUsuarioDto>("Nome é obrigatório.");
         if (string.IsNullOrWhiteSpace(req.Senha) || req.Senha.Length < 6)
@@ -97,11 +102,19 @@ public class UsuarioService
         return Result.Ok(Map(usuario));
     }
 
-    /// <summary>Edita nome, papel e status; opcionalmente redefine a senha.</summary>
+    /// <summary>
+    /// Edita nome, papel e status; opcionalmente redefine a senha (Admin/SuperAdmin).
+    /// Para contas Profissional, só o SuperAdmin pode editar nome/papel, reativar ou redefinir senha —
+    /// o Admin da clínica só pode desativar. Redefinir a senha de outra pessoa (qualquer papel) também é
+    /// exclusivo do SuperAdmin; os demais trocam a própria senha em AlterarMinhaSenhaAsync.
+    /// </summary>
     public async Task<Result<EquipeUsuarioDto>> AtualizarAsync(Guid id, AtualizarUsuarioRequest req, CancellationToken ct = default)
     {
         var usuario = await _db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.ClinicaId == _user.ClinicaId, ct);
         if (usuario is null) return Result.Falha<EquipeUsuarioDto>("Usuário não encontrado.", ErrorType.NotFound);
+
+        if (req.Papel == Papel.SuperAdmin)
+            return Result.Falha<EquipeUsuarioDto>("Papel inválido.", ErrorType.Forbidden);
 
         if (string.IsNullOrWhiteSpace(req.Nome))
             return Result.Falha<EquipeUsuarioDto>("Nome é obrigatório.");
@@ -113,6 +126,27 @@ public class UsuarioService
 
         if (!string.IsNullOrEmpty(req.NovaSenha) && req.NovaSenha.Length < 6)
             return Result.Falha<EquipeUsuarioDto>("A nova senha deve ter ao menos 6 caracteres.");
+
+        var souSuperAdmin = _user.Papel == Papel.SuperAdmin;
+
+        if (!string.IsNullOrEmpty(req.NovaSenha) && !souSuperAdmin)
+            return Result.Falha<EquipeUsuarioDto>("Somente o suporte pode redefinir a senha de outra pessoa. Peça para a própria pessoa trocar a senha dela.", ErrorType.Forbidden);
+
+        var eraProfissional = usuario.Papel == Papel.Profissional;
+        if (eraProfissional && !souSuperAdmin)
+        {
+            if (!string.Equals(req.Nome.Trim(), usuario.Nome, StringComparison.Ordinal))
+                return Result.Falha<EquipeUsuarioDto>("Somente o suporte pode editar os dados de uma conta Profissional.", ErrorType.Forbidden);
+            if (req.Papel != Papel.Profissional)
+                return Result.Falha<EquipeUsuarioDto>("Somente o suporte pode alterar o papel de uma conta Profissional.", ErrorType.Forbidden);
+            if (req.Ativo && !usuario.Ativo)
+                return Result.Falha<EquipeUsuarioDto>("Somente o suporte pode reativar uma conta Profissional. Peça a liberação da vaga.", ErrorType.Forbidden);
+            // Desativar (req.Ativo == false) continua permitido para o Admin da clínica.
+        }
+        else if (!eraProfissional && req.Papel == Papel.Profissional && !souSuperAdmin)
+        {
+            return Result.Falha<EquipeUsuarioDto>("Somente o suporte pode promover alguém a Profissional. Peça a liberação da vaga.", ErrorType.Forbidden);
+        }
 
         var eraProfissionalAtivo = usuario.Papel == Papel.Profissional && usuario.Ativo;
         var seraProfissionalAtivo = req.Papel == Papel.Profissional && req.Ativo;
@@ -148,6 +182,25 @@ public class UsuarioService
         usuario.Ativo = false;
         await _db.SaveChangesAsync(ct);
         await _audit.RegistrarAsync("UsuarioDesativado", "Usuario", usuario.Id, ct: ct);
+
+        return Result.Ok();
+    }
+
+    /// <summary>Autoatendimento: o usuário logado troca a própria senha (exige a senha atual).</summary>
+    public async Task<Result> AlterarMinhaSenhaAsync(AlterarSenhaRequest req, CancellationToken ct = default)
+    {
+        if (_user.UsuarioId is not { } id)
+            return Result.Falha("Não autenticado.", ErrorType.Unauthorized);
+
+        var usuario = await _db.Usuarios.FirstOrDefaultAsync(u => u.Id == id, ct);
+        if (usuario is null) return Result.Falha("Usuário não encontrado.", ErrorType.NotFound);
+
+        if (!_hasher.Verificar(req.SenhaAtual, usuario.SenhaHash))
+            return Result.Falha("Senha atual incorreta.", ErrorType.Forbidden);
+
+        usuario.SenhaHash = _hasher.Hash(req.NovaSenha);
+        await _db.SaveChangesAsync(ct);
+        await _audit.RegistrarAsync("SenhaAlterada", "Usuario", usuario.Id, ct: ct);
 
         return Result.Ok();
     }

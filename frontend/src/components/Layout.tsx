@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { TrocarSenhaModal } from './TrocarSenhaModal'
 import type { Papel } from '../api/types'
 import { iniciais } from '../lib/format'
 
@@ -17,19 +18,21 @@ const MENU: ItemMenu[] = [
   { para: '/agenda', rotulo: 'Agenda', icone: '📅' },
   { para: '/pacientes', rotulo: 'Pacientes', icone: '👤' },
   { para: '/catalogo', rotulo: 'Catálogo', icone: '✦' },
-  { para: '/equipe', rotulo: 'Equipe', icone: '👥', papeis: ['Admin'] },
+  { para: '/equipe', rotulo: 'Equipe', icone: '👥', papeis: ['Admin', 'SuperAdmin'] },
 ]
 
 const PAPEL_ROTULO: Record<Papel, string> = {
   Admin: 'Administrador',
   Profissional: 'Profissional',
   Recepcao: 'Recepção',
+  SuperAdmin: 'Suporte',
 }
 
 export function Layout() {
   const { usuario, logout, temPapel } = useAuth()
   const navigate = useNavigate()
   const [menuAberto, setMenuAberto] = useState(false)
+  const [trocarSenha, setTrocarSenha] = useState(false)
 
   const sair = () => {
     logout()
@@ -72,11 +75,16 @@ export function Layout() {
               <small>{usuario ? PAPEL_ROTULO[usuario.papel] : ''}</small>
             </div>
           </div>
+          <button className="btn btn-ghost btn-block" onClick={() => setTrocarSenha(true)}>
+            Trocar senha
+          </button>
           <button className="btn btn-ghost btn-block" onClick={sair}>
             Sair
           </button>
         </div>
       </aside>
+
+      <TrocarSenhaModal aberto={trocarSenha} onFechar={() => setTrocarSenha(false)} />
 
       <div className="main">
         <header className="topbar">

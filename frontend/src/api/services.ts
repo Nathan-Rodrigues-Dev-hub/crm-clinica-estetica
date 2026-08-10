@@ -37,7 +37,9 @@ export const authApi = {
 
 export const usuariosApi = {
   profissionais: () => api.get<ProfissionalListItem[]>('/api/usuarios/profissionais'),
-  // Gestão de equipe (só Admin)
+  trocarMinhaSenha: (senhaAtual: string, novaSenha: string) =>
+    api.put('/api/usuarios/me/senha', { senhaAtual, novaSenha }),
+  // Gestão de equipe (Admin/SuperAdmin)
   listar: (incluirInativos = false) =>
     api.get<EquipeUsuario[]>('/api/usuarios', { params: { incluirInativos } }),
   criar: (req: CriarUsuarioRequest) => api.post<EquipeUsuario>('/api/usuarios', req),

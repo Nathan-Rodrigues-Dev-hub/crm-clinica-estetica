@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Crm.Api.Controllers;
 
-[Authorize(Roles = Roles.Admin)]
+[Authorize(Roles = Roles.AdminOuSuperAdmin)]
 public class LgpdController : ApiControllerBase
 {
     private readonly LgpdService _service;

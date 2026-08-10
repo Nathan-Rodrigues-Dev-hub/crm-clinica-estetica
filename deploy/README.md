@@ -59,6 +59,7 @@ Na primeira subida o Caddy emite o certificado TLS automaticamente (pode levar a
 | `CLINICA_NOME` | Nome da clínica no seed. |
 | `SEED_PROCEDIMENTOS` | `true` para popular procedimentos de exemplo. |
 | `LIMITE_PROFISSIONAIS` | Vagas de profissional do plano contratado. Só é lido no primeiro start; para mudar depois, `UPDATE "Clinicas" SET "LimiteProfissionais" = <novo_valor>;` direto no Postgres do cliente. |
+| `SUPERADMIN_EMAIL` / `SUPERADMIN_SENHA` / `SUPERADMIN_NOME` | **Sua** conta de suporte, acima do Admin da clínica — só ela gerencia contas Profissional e redefine senha de terceiros. Só é criada se `SUPERADMIN_SENHA` estiver preenchida (mesma regra "roda uma vez" do Admin). Sem ela, ninguém consegue liberar vaga de profissional depois. |
 
 Segredos ficam **só no `.env`** do VPS (não versionado). O `appsettings.json` mantém apenas placeholders de desenvolvimento.
 

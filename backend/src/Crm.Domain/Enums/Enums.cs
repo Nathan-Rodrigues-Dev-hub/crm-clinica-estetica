@@ -5,7 +5,9 @@ public enum Papel
 {
     Admin = 1,
     Profissional = 2,
-    Recepcao = 3
+    Recepcao = 3,
+    /// <summary>Suporte/dono da plataforma — acima do Admin da clínica. Só é criado via seed do deploy, nunca pela tela.</summary>
+    SuperAdmin = 4
 }
 
 /// <summary>Como o cadastro do paciente foi criado.</summary>
