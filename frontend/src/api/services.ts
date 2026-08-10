@@ -4,6 +4,7 @@ import type {
   AgendamentoDto,
   AnamneseDetalhe,
   AtualizarProcedimentoRequest,
+  CriarAnamneseManualRequest,
   CriarAgendamentoRequest,
   CriarPacienteRequest,
   CriarProcedimentoRequest,
@@ -56,6 +57,8 @@ export const pacientesApi = {
   criar: (req: CriarPacienteRequest) => api.post<PacienteDto>('/api/pacientes', req),
   atualizar: (id: string, req: CriarPacienteRequest) => api.put<PacienteDto>(`/api/pacientes/${id}`, req),
   anamneses: (id: string) => api.get<AnamneseDetalhe[]>(`/api/pacientes/${id}/anamneses`),
+  criarAnamneseManual: (id: string, req: CriarAnamneseManualRequest) =>
+    api.post<AnamneseDetalhe>(`/api/pacientes/${id}/anamneses`, req),
 }
 
 // ---- Procedimentos ----
@@ -69,8 +72,10 @@ export const procedimentosApi = {
 
 // ---- Anamnese (link interno) ----
 export const anamneseApi = {
-  gerarLink: (telefoneDestino?: string, validadeHoras = 48) =>
-    api.post<LinkGeradoDto>('/api/anamnese/links', { telefoneDestino: telefoneDestino || undefined, validadeHoras }),
+  gerarLink: (telefoneDestino?: string, validadeHoras = 48, pacienteId?: string) =>
+    api.post<LinkGeradoDto>('/api/anamnese/links', {
+      telefoneDestino: telefoneDestino || undefined, validadeHoras, pacienteId: pacienteId || undefined,
+    }),
 }
 
 // ---- Intake público (sem login) ----

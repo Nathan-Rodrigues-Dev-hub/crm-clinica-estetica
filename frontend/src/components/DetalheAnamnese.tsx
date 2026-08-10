@@ -3,6 +3,7 @@ import { Modal } from './Modal'
 import { Spinner } from './Spinner'
 import { EmptyState } from './ui'
 import { AnamneseView } from './AnamneseView'
+import { AnamneseManualForm } from './AnamneseManualForm'
 import { pacientesApi } from '../api/services'
 import { mensagemErro } from '../api/client'
 import { useToast } from './Toast'
@@ -15,27 +16,38 @@ export function DetalheAnamnese({ pacienteId, aberto, onFechar }: { pacienteId: 
   const [itens, setItens] = useState<AnamneseDetalhe[]>([])
   const [carregando, setCarregando] = useState(true)
   const [selecionadaId, setSelecionadaId] = useState<string | null>(null)
+  const [modalManual, setModalManual] = useState(false)
 
-  useEffect(() => {
-    if (!aberto) return
+  const carregar = () => {
     setCarregando(true)
     pacientesApi.anamneses(pacienteId)
       .then((r) => {
         setItens(r.data)
-        setSelecionadaId(r.data[0]?.id ?? null)
+        setSelecionadaId((atual) => atual ?? r.data[0]?.id ?? null)
       })
       .catch((e) => toast.erro(mensagemErro(e)))
       .finally(() => setCarregando(false))
+  }
+
+  useEffect(() => {
+    if (!aberto) return
+    setSelecionadaId(null)
+    carregar()
   }, [aberto, pacienteId])
 
   const selecionada = itens.find((a) => a.id === selecionadaId) ?? null
 
   return (
     <Modal aberto={aberto} titulo="Anamneses da paciente" onFechar={onFechar} largura={820}>
+      <div className="row spread" style={{ marginBottom: 16 }}>
+        <p className="muted" style={{ margin: 0, fontSize: 13 }}>Histórico completo, mais recente primeiro.</p>
+        <button className="btn btn-soft btn-sm" onClick={() => setModalManual(true)}>+ Nova ficha</button>
+      </div>
+
       {carregando ? (
         <Spinner label="Carregando anamneses…" />
       ) : itens.length === 0 ? (
-        <EmptyState titulo="Nenhuma anamnese preenchida" texto="Gere um link de anamnese para a paciente preencher." />
+        <EmptyState titulo="Nenhuma anamnese preenchida" texto="Gere um link de anamnese ou clique em '+ Nova ficha' para digitalizar uma ficha em papel." />
       ) : (
         <div>
           {itens.length > 1 && (
@@ -54,6 +66,13 @@ export function DetalheAnamnese({ pacienteId, aberto, onFechar }: { pacienteId: 
           {selecionada && <AnamneseView a={selecionada} />}
         </div>
       )}
+
+      <AnamneseManualForm
+        pacienteId={pacienteId}
+        aberto={modalManual}
+        onFechar={() => setModalManual(false)}
+        onCriada={() => { setModalManual(false); setSelecionadaId(null); carregar() }}
+      />
     </Modal>
   )
 }

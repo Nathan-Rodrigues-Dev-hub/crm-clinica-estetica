@@ -166,6 +166,16 @@ export interface AnamneseDetalhe {
   respostas: RespostasAnamnese
 }
 
+export interface CriarAnamneseManualRequest {
+  dataPreenchimento?: string | null
+  peso?: number | null
+  altura?: number | null
+  pressaoArterial?: string | null
+  motivoEstetico?: string | null
+  aceiteDeclaracao: boolean
+  respostas: RespostasAnamnese
+}
+
 export interface SolicitacaoDetalhe {
   id: string
   pacienteId: string
