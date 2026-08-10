@@ -1,6 +1,7 @@
 using Crm.Application.Common;
 using Crm.Application.Common.Interfaces;
 using Crm.Application.Features.Agenda;
+using Crm.Application.Features.Anamnese;
 using Crm.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 

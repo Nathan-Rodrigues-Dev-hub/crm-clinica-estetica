@@ -76,6 +76,27 @@ public class MidiaService
         return Result.Ok(arquivo with { NomeArquivo = midia.NomeArquivo, ContentType = midia.ContentType });
     }
 
+    /// <summary>Renomeia o arquivo (nome de exibição/organização — não altera a chave no storage).</summary>
+    public async Task<Result<MidiaDto>> RenomearAsync(Guid midiaId, string novoNome, CancellationToken ct = default)
+    {
+        var nome = novoNome.Trim();
+        if (string.IsNullOrWhiteSpace(nome))
+            return Result.Falha<MidiaDto>("Informe um nome para o arquivo.");
+        if (nome.Length > 300)
+            return Result.Falha<MidiaDto>("Nome muito longo (máx. 300 caracteres).");
+
+        var midia = await _db.Midias.FirstOrDefaultAsync(m => m.Id == midiaId && m.ClinicaId == _user.ClinicaId, ct);
+        if (midia is null) return Result.Falha<MidiaDto>("Mídia não encontrada.", ErrorType.NotFound);
+
+        var extensaoAtual = Path.GetExtension(midia.NomeArquivo);
+        if (!string.IsNullOrEmpty(extensaoAtual) && !nome.EndsWith(extensaoAtual, StringComparison.OrdinalIgnoreCase))
+            nome += extensaoAtual;
+
+        midia.NomeArquivo = nome;
+        await _db.SaveChangesAsync(ct);
+        return Result.Ok(Map(midia));
+    }
+
     public async Task<Result> RemoverAsync(Guid midiaId, CancellationToken ct = default)
     {
         var midia = await _db.Midias.FirstOrDefaultAsync(m => m.Id == midiaId && m.ClinicaId == _user.ClinicaId, ct);

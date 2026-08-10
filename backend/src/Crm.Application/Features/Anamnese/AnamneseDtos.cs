@@ -25,3 +25,8 @@ public record IntakeRequest(
     PacienteIntake Paciente, AnamneseIntake Anamnese);
 
 public record IntakeResultado(Guid SolicitacaoId, Guid PacienteId, decimal? Imc, string Mensagem);
+
+// ---- Consulta (histórico por paciente) ----
+public record AnamneseDetalhe(
+    Guid Id, DateTime DataPreenchimento, decimal? Peso, decimal? Altura, decimal? Imc,
+    string? PressaoArterial, string? MotivoEstetico, bool AceiteDeclaracao, RespostasAnamnese Respostas);

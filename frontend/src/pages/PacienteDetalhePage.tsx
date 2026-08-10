@@ -7,6 +7,7 @@ import { useToast } from '../components/Toast'
 import { Badge, Card, PageHeader } from '../components/ui'
 import { Spinner } from '../components/Spinner'
 import { MidiaGaleria } from '../components/MidiaGaleria'
+import { DetalheAnamnese } from '../components/DetalheAnamnese'
 import { PacienteFormModal } from './PacienteFormModal'
 import { formatarCpf, formatarData, formatarTelefone } from '../lib/format'
 import type { PacienteDto } from '../api/types'
@@ -17,10 +18,12 @@ export function PacienteDetalhePage() {
   const toast = useToast()
   const { temPapel } = useAuth()
   const podeVerMidia = temPapel('Admin', 'Profissional')
+  const podeVerAnamnese = temPapel('Admin', 'Profissional')
 
   const [paciente, setPaciente] = useState<PacienteDto | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [editar, setEditar] = useState(false)
+  const [verAnamneses, setVerAnamneses] = useState(false)
 
   const carregar = () => {
     setCarregando(true)
@@ -40,6 +43,7 @@ export function PacienteDetalhePage() {
         acao={
           <div className="row">
             <button className="btn btn-ghost" onClick={() => navigate('/pacientes')}>← Voltar</button>
+            {podeVerAnamnese && <button className="btn btn-soft" onClick={() => setVerAnamneses(true)}>Ver anamneses</button>}
             <button className="btn btn-primary" onClick={() => setEditar(true)}>Editar</button>
           </div>
         }
@@ -74,6 +78,9 @@ export function PacienteDetalhePage() {
       </div>
 
       <PacienteFormModal aberto={editar} paciente={paciente} onFechar={() => setEditar(false)} onSalvo={(p) => setPaciente(p)} />
+      {podeVerAnamnese && (
+        <DetalheAnamnese pacienteId={paciente.id} aberto={verAnamneses} onFechar={() => setVerAnamneses(false)} />
+      )}
     </>
   )
 }

@@ -50,6 +50,11 @@ public class MidiasController : ApiControllerBase
         return File(a.Conteudo, a.ContentType, a.NomeArquivo);
     }
 
+    /// <summary>Renomeia o arquivo (organização por nome para recepção/social media).</summary>
+    [HttpPatch("{id:guid}")]
+    public async Task<IActionResult> Renomear(Guid id, [FromBody] RenomearMidiaRequest req, CancellationToken ct)
+        => ToResponse(await _service.RenomearAsync(id, req.NomeArquivo, ct));
+
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Remover(Guid id, CancellationToken ct)
         => ToResponse(await _service.RemoverAsync(id, ct));
