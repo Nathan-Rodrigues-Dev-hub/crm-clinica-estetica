@@ -18,8 +18,8 @@ export function PacienteDetalhePage() {
   const navigate = useNavigate()
   const toast = useToast()
   const { temPapel } = useAuth()
-  const podeVerMidia = temPapel('Admin', 'Profissional')
-  const podeVerAnamnese = temPapel('Admin', 'Profissional')
+  const podeVerMidia = temPapel('Admin', 'Profissional', 'SuperAdmin')
+  const podeVerAnamnese = temPapel('Admin', 'Profissional', 'SuperAdmin')
 
   const [paciente, setPaciente] = useState<PacienteDto | null>(null)
   const [carregando, setCarregando] = useState(true)
