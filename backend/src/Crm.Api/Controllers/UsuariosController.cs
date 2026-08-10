@@ -26,6 +26,12 @@ public class UsuariosController : ApiControllerBase
     public async Task<IActionResult> Listar([FromQuery] bool incluirInativos = false, CancellationToken ct = default)
         => ToResponse(await _service.ListarEquipeAsync(incluirInativos, ct));
 
+    /// <summary>Vagas de profissional do plano x quantas já estão em uso (Admin).</summary>
+    [Authorize(Roles = Roles.Admin)]
+    [HttpGet("limite-profissionais")]
+    public async Task<IActionResult> LimiteProfissionais(CancellationToken ct)
+        => ToResponse(await _service.ObterLimiteProfissionaisAsync(ct));
+
     /// <summary>Cria um membro da equipe com senha inicial (Admin).</summary>
     [Authorize(Roles = Roles.Admin)]
     [HttpPost]

@@ -14,3 +14,6 @@ public record CriarUsuarioRequest(string Nome, string Email, string Senha, Papel
 
 /// <summary>Edição de um membro: nome, papel, status e, opcionalmente, redefinir a senha.</summary>
 public record AtualizarUsuarioRequest(string Nome, Papel Papel, bool Ativo, string? NovaSenha);
+
+/// <summary>Vagas de profissional do plano contratado x quantas já estão em uso.</summary>
+public record LimiteProfissionaisDto(int Limite, int Ativos);

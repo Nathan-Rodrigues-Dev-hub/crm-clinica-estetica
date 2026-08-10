@@ -20,7 +20,11 @@ public static class DbSeeder
         var clinica = await db.Clinicas.FirstOrDefaultAsync();
         if (clinica is null)
         {
-            clinica = new Clinica { Nome = config["Seed:ClinicaNome"] ?? "Clínica (MVP)" };
+            clinica = new Clinica
+            {
+                Nome = config["Seed:ClinicaNome"] ?? "Clínica (MVP)",
+                LimiteProfissionais = config.GetValue<int?>("Seed:LimiteProfissionais") ?? 5
+            };
             db.Clinicas.Add(clinica);
             await db.SaveChangesAsync();
         }

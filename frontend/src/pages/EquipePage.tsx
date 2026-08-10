@@ -6,7 +6,7 @@ import { mensagemErro } from '../api/client'
 import { Badge, Card, EmptyState, Field, PageHeader } from '../components/ui'
 import { Modal } from '../components/Modal'
 import { Spinner } from '../components/Spinner'
-import type { EquipeUsuario, Papel } from '../api/types'
+import type { EquipeUsuario, LimiteProfissionaisDto, Papel } from '../api/types'
 
 interface Editando {
   id?: string
@@ -36,13 +36,19 @@ export function EquipePage() {
   const [incluirInativos, setIncluirInativos] = useState(false)
   const [edit, setEdit] = useState<Editando | null>(null)
   const [salvando, setSalvando] = useState(false)
+  const [limite, setLimite] = useState<LimiteProfissionaisDto | null>(null)
 
   const carregar = (inativos: boolean) => {
     setCarregando(true)
     usuariosApi.listar(inativos).then((r) => setItens(r.data)).finally(() => setCarregando(false))
   }
 
+  const carregarLimite = () => {
+    usuariosApi.limiteProfissionais().then((r) => setLimite(r.data)).catch(() => {})
+  }
+
   useEffect(() => carregar(incluirInativos), [incluirInativos])
+  useEffect(carregarLimite, [])
 
   const salvar = async () => {
     if (!edit) return
@@ -71,6 +77,7 @@ export function EquipePage() {
       toast.sucesso('Usuário salvo.')
       setEdit(null)
       carregar(incluirInativos)
+      carregarLimite()
     } catch (err) {
       toast.erro(mensagemErro(err))
     } finally {
@@ -83,6 +90,7 @@ export function EquipePage() {
       await usuariosApi.desativar(u.id)
       toast.sucesso(`${u.nome} foi desativado.`)
       carregar(incluirInativos)
+      carregarLimite()
     } catch (err) {
       toast.erro(mensagemErro(err))
     }
@@ -95,6 +103,13 @@ export function EquipePage() {
         subtitulo="Cadastre e gerencie os usuários que acessam o sistema."
         acao={<button className="btn btn-primary" onClick={() => setEdit({ ...novo })}>+ Novo usuário</button>}
       />
+
+      {limite && (
+        <div className={`alert ${limite.ativos >= limite.limite ? 'alert-warn' : 'alert-info'}`} style={{ marginBottom: 16 }}>
+          Vagas de profissional do plano: <strong>{limite.ativos} de {limite.limite}</strong> em uso.
+          {limite.ativos >= limite.limite && ' Limite atingido — fale com o suporte para liberar mais vagas.'}
+        </div>
+      )}
 
       <div className="toolbar">
         <label className="checkbox field" style={{ marginBottom: 0 }}>

@@ -34,6 +34,11 @@ export interface EquipeUsuario {
   ativo: boolean
 }
 
+export interface LimiteProfissionaisDto {
+  limite: number
+  ativos: number
+}
+
 export interface CriarUsuarioRequest {
   nome: string
   email: string

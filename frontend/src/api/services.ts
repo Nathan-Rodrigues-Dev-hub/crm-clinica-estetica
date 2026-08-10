@@ -18,6 +18,7 @@ import type {
   AtualizarUsuarioRequest,
   CriarUsuarioRequest,
   EquipeUsuario,
+  LimiteProfissionaisDto,
   ProcedimentoDto,
   ProfissionalListItem,
   SolicitacaoDetalhe,
@@ -43,6 +44,7 @@ export const usuariosApi = {
   atualizar: (id: string, req: AtualizarUsuarioRequest) =>
     api.put<EquipeUsuario>(`/api/usuarios/${id}`, req),
   desativar: (id: string) => api.delete(`/api/usuarios/${id}`),
+  limiteProfissionais: () => api.get<LimiteProfissionaisDto>('/api/usuarios/limite-profissionais'),
 }
 
 // ---- Pacientes ----

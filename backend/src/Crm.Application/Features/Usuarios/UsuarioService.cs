@@ -75,6 +75,12 @@ public class UsuarioService
         if (await _db.Usuarios.AnyAsync(u => u.Email == email, ct))
             return Result.Falha<EquipeUsuarioDto>("Já existe um usuário com este e-mail.", ErrorType.Conflict);
 
+        if (req.Papel == Papel.Profissional)
+        {
+            var erroLimite = await ChecarLimiteProfissionaisAsync(excluirUsuarioId: null, ct);
+            if (erroLimite is not null) return Result.Falha<EquipeUsuarioDto>(erroLimite, ErrorType.Conflict);
+        }
+
         var usuario = new Usuario
         {
             ClinicaId = _user.ClinicaId!.Value,
@@ -108,6 +114,14 @@ public class UsuarioService
         if (!string.IsNullOrEmpty(req.NovaSenha) && req.NovaSenha.Length < 6)
             return Result.Falha<EquipeUsuarioDto>("A nova senha deve ter ao menos 6 caracteres.");
 
+        var eraProfissionalAtivo = usuario.Papel == Papel.Profissional && usuario.Ativo;
+        var seraProfissionalAtivo = req.Papel == Papel.Profissional && req.Ativo;
+        if (seraProfissionalAtivo && !eraProfissionalAtivo)
+        {
+            var erroLimite = await ChecarLimiteProfissionaisAsync(excluirUsuarioId: usuario.Id, ct);
+            if (erroLimite is not null) return Result.Falha<EquipeUsuarioDto>(erroLimite, ErrorType.Conflict);
+        }
+
         usuario.Nome = req.Nome.Trim();
         usuario.Papel = req.Papel;
         usuario.Ativo = req.Ativo;
@@ -137,6 +151,36 @@ public class UsuarioService
 
         return Result.Ok();
     }
+
+    /// <summary>Vagas de profissional do plano contratado x quantas já estão em uso (Admin).</summary>
+    public async Task<Result<LimiteProfissionaisDto>> ObterLimiteProfissionaisAsync(CancellationToken ct = default)
+    {
+        var limite = await _db.Clinicas.AsNoTracking()
+            .Where(c => c.Id == _user.ClinicaId)
+            .Select(c => c.LimiteProfissionais)
+            .FirstOrDefaultAsync(ct);
+        var ativos = await ContarProfissionaisAtivosAsync(excluirUsuarioId: null, ct);
+        return Result.Ok(new LimiteProfissionaisDto(limite, ativos));
+    }
+
+    /// <summary>Camada 1 do controle de licenciamento: bloqueia ativar mais Profissionais do que o plano contratado.</summary>
+    private async Task<string?> ChecarLimiteProfissionaisAsync(Guid? excluirUsuarioId, CancellationToken ct)
+    {
+        var limite = await _db.Clinicas.AsNoTracking()
+            .Where(c => c.Id == _user.ClinicaId)
+            .Select(c => c.LimiteProfissionais)
+            .FirstOrDefaultAsync(ct);
+
+        var ativos = await ContarProfissionaisAtivosAsync(excluirUsuarioId, ct);
+        return ativos >= limite
+            ? $"Limite de {limite} profissional(is) do plano atingido. Fale com o suporte para liberar mais vagas."
+            : null;
+    }
+
+    private Task<int> ContarProfissionaisAtivosAsync(Guid? excluirUsuarioId, CancellationToken ct) =>
+        _db.Usuarios.CountAsync(u =>
+            u.ClinicaId == _user.ClinicaId && u.Papel == Papel.Profissional && u.Ativo &&
+            (excluirUsuarioId == null || u.Id != excluirUsuarioId), ct);
 
     private static string? NormalizarEmail(string? bruto, out string email)
     {
