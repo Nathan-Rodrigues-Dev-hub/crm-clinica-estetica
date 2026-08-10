@@ -23,3 +23,13 @@ public class AtualizarUsuarioRequestValidator : AbstractValidator<AtualizarUsuar
             .WithMessage("A nova senha deve ter ao menos 6 caracteres.");
     }
 }
+
+public class AlterarSenhaRequestValidator : AbstractValidator<AlterarSenhaRequest>
+{
+    public AlterarSenhaRequestValidator()
+    {
+        RuleFor(x => x.SenhaAtual).NotEmpty().WithMessage("Informe a senha atual.");
+        RuleFor(x => x.NovaSenha).NotEmpty().WithMessage("Informe a nova senha.")
+            .MinimumLength(6).WithMessage("A nova senha deve ter ao menos 6 caracteres.");
+    }
+}

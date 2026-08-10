@@ -1,6 +1,6 @@
 // Tipos espelhando os DTOs da API (.NET). Enums são serializados como string.
 
-export type Papel = 'Admin' | 'Profissional' | 'Recepcao'
+export type Papel = 'Admin' | 'Profissional' | 'Recepcao' | 'SuperAdmin'
 export type OrigemPaciente = 'AutoCadastroLink' | 'Recepcao'
 export type StatusSolicitacao = 'Recebida' | 'EmTriagem' | 'Agendada' | 'Recusada'
 export type StatusAgendamento = 'Agendado' | 'Realizado' | 'Faltou' | 'Cancelado'

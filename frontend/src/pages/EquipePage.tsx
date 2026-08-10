@@ -23,12 +23,15 @@ const PAPEL_ROTULO: Record<Papel, string> = {
   Admin: 'Administrador',
   Profissional: 'Profissional',
   Recepcao: 'Recepção',
+  SuperAdmin: 'Suporte',
 }
 
 const PAPEIS: Papel[] = ['Admin', 'Profissional', 'Recepcao']
 
 export function EquipePage() {
-  const { usuario } = useAuth()
+  const { usuario, temPapel } = useAuth()
+  const souSuperAdmin = temPapel('SuperAdmin')
+  const papeisDisponiveis = souSuperAdmin ? PAPEIS : PAPEIS.filter((p) => p !== 'Profissional')
   const toast = useToast()
 
   const [itens, setItens] = useState<EquipeUsuario[]>([])
@@ -138,6 +141,7 @@ export function EquipePage() {
               <tbody>
                 {itens.map((u) => {
                   const ehVoce = u.id === usuario?.id
+                  const podeEditar = souSuperAdmin || u.papel !== 'Profissional'
                   return (
                     <tr key={u.id}>
                       <td>
@@ -148,12 +152,16 @@ export function EquipePage() {
                       <td>{PAPEL_ROTULO[u.papel]}</td>
                       <td>{u.ativo ? <Badge texto="Ativo" tom="sucesso" /> : <Badge texto="Inativo" tom="neutro" />}</td>
                       <td className="text-right">
-                        <button
-                          className="link-btn"
-                          onClick={() => setEdit({ id: u.id, nome: u.nome, email: u.email, papel: u.papel, senha: '', ativo: u.ativo })}
-                        >
-                          Editar
-                        </button>
+                        {podeEditar ? (
+                          <button
+                            className="link-btn"
+                            onClick={() => setEdit({ id: u.id, nome: u.nome, email: u.email, papel: u.papel, senha: '', ativo: u.ativo })}
+                          >
+                            Editar
+                          </button>
+                        ) : (
+                          <small className="muted">Gerenciado pelo suporte</small>
+                        )}
                         {u.ativo && !ehVoce && (
                           <>
                             {' · '}
@@ -188,23 +196,30 @@ export function EquipePage() {
             </Field>
 
             <div className="form-row">
-              <Field label="Papel">
+              <Field label="Papel" hint={!souSuperAdmin ? 'Contas Profissional são cadastradas pelo suporte.' : undefined}>
                 <select value={edit.papel} onChange={(e) => setEdit({ ...edit, papel: e.target.value as Papel })}>
-                  {PAPEIS.map((p) => (
+                  {papeisDisponiveis.map((p) => (
                     <option key={p} value={p}>{PAPEL_ROTULO[p]}</option>
                   ))}
                 </select>
               </Field>
-              <Field label={edit.id ? 'Nova senha' : 'Senha inicial'} hint={edit.id ? 'Deixe em branco para manter a atual.' : 'Mínimo 6 caracteres.'}>
-                <input
-                  type="password"
-                  value={edit.senha}
-                  onChange={(e) => setEdit({ ...edit, senha: e.target.value })}
-                  autoComplete="new-password"
-                  placeholder={edit.id ? '••••••' : ''}
-                />
-              </Field>
+              {(!edit.id || souSuperAdmin) && (
+                <Field label={edit.id ? 'Nova senha' : 'Senha inicial'} hint={edit.id ? 'Deixe em branco para manter a atual.' : 'Mínimo 6 caracteres.'}>
+                  <input
+                    type="password"
+                    value={edit.senha}
+                    onChange={(e) => setEdit({ ...edit, senha: e.target.value })}
+                    autoComplete="new-password"
+                    placeholder={edit.id ? '••••••' : ''}
+                  />
+                </Field>
+              )}
             </div>
+            {edit.id && !souSuperAdmin && (
+              <p className="muted" style={{ fontSize: 13, marginTop: -8 }}>
+                Para redefinir a senha desta pessoa, peça para ela trocar em "Trocar senha" — ou fale com o suporte.
+              </p>
+            )}
 
             {edit.id && (
               <label className="checkbox">

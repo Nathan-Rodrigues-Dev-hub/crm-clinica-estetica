@@ -17,3 +17,6 @@ public record AtualizarUsuarioRequest(string Nome, Papel Papel, bool Ativo, stri
 
 /// <summary>Vagas de profissional do plano contratado x quantas já estão em uso.</summary>
 public record LimiteProfissionaisDto(int Limite, int Ativos);
+
+/// <summary>Autoatendimento: o próprio usuário troca a sua senha (exige a senha atual).</summary>
+public record AlterarSenhaRequest(string SenhaAtual, string NovaSenha);

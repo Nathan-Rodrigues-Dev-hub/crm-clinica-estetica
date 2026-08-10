@@ -63,6 +63,23 @@ public static class DbSeeder
             await db.SaveChangesAsync();
         }
 
+        // Conta SuperAdmin (suporte/dono da plataforma) — independente do bloco acima, para não
+        // exigir recriar o banco em clínicas já existentes. Só cria se a senha estiver configurada
+        // (sem default: não queremos um SuperAdmin com credencial previsível em produção).
+        var senhaSuperAdmin = config["Seed:SuperAdminSenha"];
+        if (!string.IsNullOrWhiteSpace(senhaSuperAdmin) && !await db.Usuarios.AnyAsync(u => u.Papel == Papel.SuperAdmin))
+        {
+            db.Usuarios.Add(new Usuario
+            {
+                ClinicaId = clinica.Id,
+                Nome = config["Seed:SuperAdminNome"] ?? "Suporte",
+                Email = (config["Seed:SuperAdminEmail"] ?? "suporte@crm.local").ToLowerInvariant(),
+                SenhaHash = hasher.Hash(senhaSuperAdmin),
+                Papel = Papel.SuperAdmin
+            });
+            await db.SaveChangesAsync();
+        }
+
         // Catálogo inicial da clínica (Seed:Procedimentos = true, padrão). Roda uma vez,
         // em banco sem procedimentos; a clínica adiciona/edita os demais pela tela de Catálogo.
         var seedProcedimentos = config.GetValue<bool?>("Seed:Procedimentos") ?? true;
