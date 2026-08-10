@@ -1,8 +1,8 @@
 # CRM para Clínica de Estética
 
-CRM sob medida para uma clínica de estética real (single-tenant, preparado para multi-clínica). Digitaliza a operação: captação da paciente por link de anamnese, **triagem**, agenda, catálogo de procedimentos e fotos de antes/depois — tratando **dados sensíveis de saúde** com LGPD desde o dia 1.
+CRM para clínicas de estética. Digitaliza a operação: captação da paciente por link de anamnese, **triagem**, agenda, catálogo de procedimentos e fotos de antes/depois — tratando **dados sensíveis de saúde** com LGPD desde o dia 1. Cobrança por vaga de profissional (R$120/profissional/mês).
 
-> **Estratégia:** pensar grande, começar pequeno. Nasce single-tenant, mas com `ClinicaId` nas entidades para virar produto multi-clínica sem reescrita.
+> **Estratégia:** pensar grande, começar pequeno. Hoje roda em produção **single-tenant** (uma clínica por VPS/banco), mas com `ClinicaId` em toda entidade desde o início — o modelo de dados já é multi-tenant por baixo dos panos. A expansão para várias clínicas numa infraestrutura compartilhada (marca **Essenza**) está especificada e aguardando implementação: ver [issue #30](https://github.com/Nathan-Rodrigues-Dev-hub/crm-clinica-estetica/issues/30) (PRD) e [issue #31](https://github.com/Nathan-Rodrigues-Dev-hub/crm-clinica-estetica/issues/31) (identidade visual).
 
 ## Fluxo de entrada (o coração do produto)
 
@@ -18,19 +18,24 @@ A cliente demonstra interesse → a clínica envia um **link de anamnese sem log
 | `CRM Clinica de Estetica - Apresentacao para Cliente.pptx/.pdf` | Apresentação do projeto para o cliente (v1.1, fluxo revisado). |
 | `backend/` | **API .NET 8** (Clean Architecture) — Fase 1 implementada e testada. Ver `backend/README-backend.md`. |
 | `frontend/` | **App React + Vite + TypeScript** — Fase 1 implementada. Ver `frontend/README.md`. |
+| `deploy/` | Deploy de produção (VPS único, Docker Compose: Postgres + API + Caddy/HTTPS). Ver `deploy/README.md`. |
 | `.github/workflows/ci.yml` | CI (GitHub Actions): build + testes do backend (com Postgres) e build do frontend. |
 
 ## Status
 
-- ✅ **Backend (Fase 1 / MVP)** — Auth JWT por papel, Pacientes, Catálogo, Anamnese (link interno + intake público sem login), Triagem (agendar/recusar), Agenda (bloqueio de colisão), Mídia, LGPD (anonimização). Validação de CPF com dígito verificador (FluentValidation), middleware global de erros (ProblemDetails) e **testes automatizados** (xUnit + WebApplicationFactory contra Postgres).
-- ✅ **Frontend (React)** — login/sessão JWT com guarda por papel, anamnese pública, pacientes, catálogo, triagem, agenda e galeria de mídia. Responsivo.
-- ⏳ **Fase 2/3** — engajamento, comercial e marketing. Itens com custo (S3, deploy, WhatsApp/e-mail) no backlog.
+- ✅ **Backend (Fase 1 / MVP)** — Auth JWT por papel, Pacientes, Catálogo, Anamnese (link interno + intake público sem login + registro manual pela recepção), Triagem (agendar/recusar), Agenda (bloqueio de colisão), Mídia (upload, renomear, download), LGPD (anonimização). Validação de CPF com dígito verificador (FluentValidation), middleware global de erros (ProblemDetails) e **testes automatizados** (xUnit + WebApplicationFactory contra Postgres).
+- ✅ **Frontend (React)** — login/sessão JWT com guarda por papel, anamnese pública e manual, histórico de anamnese, pacientes, catálogo, triagem, agenda e galeria de mídia (com visualização em tela cheia). Responsivo (iPhone).
+- ✅ **Em produção** — piloto rodando num VPS (Docker Compose: Postgres + API + Caddy/HTTPS). Ver `deploy/README.md`.
+- ✅ **Licenciamento por vagas de profissional** — `Clinica.LimiteProfissionais` bloqueia criar/reativar profissional além do plano contratado; painel de Equipe mostra vagas em uso. Camada 1 de um plano maior anti-fraude ([issue #25](https://github.com/Nathan-Rodrigues-Dev-hub/crm-clinica-estetica/issues/25)).
+- ✅ **Hierarquia de permissões** — além de Admin/Profissional/Recepção, existe o papel **SuperAdmin** (suporte/dono da plataforma): só ele gerencia contas Profissional e redefine senha de terceiros; todo usuário troca a própria senha por autoatendimento.
+- ⏳ **Expansão multi-tenant (Essenza)** — especificada, não implementada: infraestrutura compartilhada servindo várias clínicas por subdomínio, conta de SuperAdmin fora de qualquer clínica, identidade visual própria. Ver [issue #30](https://github.com/Nathan-Rodrigues-Dev-hub/crm-clinica-estetica/issues/30) (PRD) e [issue #31](https://github.com/Nathan-Rodrigues-Dev-hub/crm-clinica-estetica/issues/31) (spec visual).
+- ⏳ **Fase 2/3** — engajamento, comercial e marketing. Itens com custo (S3, WhatsApp/e-mail automático) no backlog ([issue #14](https://github.com/Nathan-Rodrigues-Dev-hub/crm-clinica-estetica/issues/14)).
 
 ## Stack
 
 - **Backend:** ASP.NET Core (.NET 8), Clean Architecture, EF Core + PostgreSQL, JWT, BCrypt, FluentValidation.
 - **Frontend:** React 18 + Vite + TypeScript, react-router, axios (responsivo).
-- **Storage de mídia:** local em dev; **AWS S3 (sa-east-1)** em produção (interface `IFileStorage` já pronta).
+- **Storage de mídia:** local em disco (dev e produção — volume Docker persistente); interface `IFileStorage` já isola isso, S3 fica para quando a escala multi-clínica pedir.
 
 ## Rodando (resumo)
 
@@ -45,4 +50,4 @@ cd frontend
 npm install && npm run dev          # http://localhost:5173
 ```
 
-Usuários de teste (seed): `admin@clinica.local` · `profissional@clinica.local` · `recepcao@clinica.local` — senha `Admin@123`. Detalhes em [`backend/README-backend.md`](backend/README-backend.md) e [`frontend/README.md`](frontend/README.md).
+Usuários de teste (seed): `admin@clinica.local` · `profissional@clinica.local` · `recepcao@clinica.local` — senha `Admin@123`. Uma conta **SuperAdmin** é criada à parte só se `Seed:SuperAdminSenha` estiver configurada (não entra no seed padrão). Detalhes em [`backend/README-backend.md`](backend/README-backend.md) e [`frontend/README.md`](frontend/README.md); deploy de produção em [`deploy/README.md`](deploy/README.md).
